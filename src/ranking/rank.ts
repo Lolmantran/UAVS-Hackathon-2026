@@ -13,6 +13,15 @@ function countSatisfied(evaluations: CriterionEvaluation[], importance: Criterio
   return evaluations.filter((e) => e.criterion.importance === importance && e.outcome === "satisfied").length;
 }
 
+// Getting the right kind of product outranks every other attribute: a rubber boot that's the
+// wrong color still belongs above a leather bag when nothing satisfies every mandatory criterion.
+// No item_type criterion present (older/legacy extractions) is treated as a non-factor, not a
+// penalty, so this falls back to the previous mandatory-count ordering.
+function itemTypeSatisfied(evaluations: CriterionEvaluation[]): boolean {
+  const itemType = evaluations.find((e) => e.criterion.attribute === "item_type");
+  return itemType ? itemType.outcome === "satisfied" : true;
+}
+
 export function scoreProduct(criteria: Criterion[], product: Product, similarity: number): ScoredProduct {
   const evaluations = criteria.map((c) => evaluateCriterion(c, product));
   const eligible = evaluations
@@ -50,6 +59,8 @@ export function rankProducts(
   const secondary = scored
     .filter((s) => !s.eligible)
     .sort((a, b) => {
+      const itemTypeDiff = Number(itemTypeSatisfied(b.evaluations)) - Number(itemTypeSatisfied(a.evaluations));
+      if (itemTypeDiff !== 0) return itemTypeDiff;
       const mandatoryDiff = countSatisfied(b.evaluations, "mandatory") - countSatisfied(a.evaluations, "mandatory");
       if (mandatoryDiff !== 0) return mandatoryDiff;
       return b.similarity - a.similarity;

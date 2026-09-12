@@ -89,6 +89,12 @@ Output ONLY a single JSON object (no markdown, no commentary) matching exactly t
 Rules:
 - category: use the category hint if one is given, unless the query clearly contradicts it. Otherwise
   infer it from the query/image if obvious, or use null if it genuinely can't be determined.
+- Always include exactly one criterion with attribute "item_type", importance "mandatory", as the
+  FIRST entry in criteria. Its description must name ONLY the fundamental kind of product being
+  requested (e.g. "boot", "face wash", "wifi security camera", "tablet case") — never bundle in
+  material, color, or style modifiers; those become their own separate criteria. Getting the right
+  kind of product outranks every other attribute downstream, so this criterion must be the bare noun,
+  not a qualified phrase.
 - Mandatory vs. preferred: an explicitly stated hard constraint (a price cap, an exclusion, a stated
   must-have) is mandatory. A stated nice-to-have ("preferably foldable", a vague style preference) is
   preferred. An unqualified but clearly requested feature defaults to mandatory — read the buyer's
