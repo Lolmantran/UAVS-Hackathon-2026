@@ -13,6 +13,9 @@ export interface Criterion {
 
 export interface ExtractedIntent {
   category: ProductCategory | null;
+  /** The bare fundamental kind of product requested, e.g. "t-shirt", "boot". Always also present
+   *  as criteria[0], a synthesized mandatory "item_type" Criterion — see extraction/intent.ts. */
+  itemType: string;
   useCaseSummary: string; // short semantic summary of what the buyer is trying to achieve
   criteria: Criterion[];
 }
