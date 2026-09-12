@@ -14,15 +14,29 @@ const STOPWORDS = new Set([
   "are", "be", "it", "its", "as", "at", "by", "from", "should", "must", "want", "under", "over",
 ]);
 
+// IDs, file paths, and source tags carry zero semantic signal but were eating into the corpus's
+// truncated budget ahead of fields that do (e.g. index_name="Ladieswear") — found by tracing a
+// live "unknown" gender outcome to a raw attribute value that was genuinely present but sat past
+// semanticEvaluate.ts's MAX_CORPUS_CHARS cutoff purely because these fields were flattened first.
+const NOISE_ATTRIBUTE_KEYS = new Set([
+  "article_id", "id", "image_file", "image_path", "image_url", "source",
+]);
+
 function flattenValue(value: unknown): string {
   if (value === null || value === undefined) return "";
   if (Array.isArray(value)) return value.map(flattenValue).join(" ");
-  if (typeof value === "object") return Object.values(value as Record<string, unknown>).map(flattenValue).join(" ");
+  if (typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .filter(([key]) => !NOISE_ATTRIBUTE_KEYS.has(key))
+      .map(([, v]) => flattenValue(v))
+      .join(" ");
+  }
   return String(value);
 }
 
 // Corpus a criterion is checked against: title/brand/embeddingText plus raw attributes
-// (embeddingText already folds in most attribute fields, but not all — e.g. price, ratings).
+// (embeddingText already folds in most attribute fields, but not all — e.g. price, ratings,
+// and clothing's index_name/section_name, which is where "Ladieswear"/"Menswear" actually lives).
 // Exported so the semantic fallback evaluator (semanticEvaluate.ts) can give the model the same
 // text this deterministic pass already looked at, instead of re-deriving it.
 export function buildCorpus(product: Product): string {

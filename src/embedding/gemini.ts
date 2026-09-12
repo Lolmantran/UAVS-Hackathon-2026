@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { env } from "../config/env.js";
 import { MODEL_CONFIG } from "../config/model.js";
@@ -68,6 +68,15 @@ export async function describeImage(input: DescribeImageInput): Promise<string> 
   return text.trim();
 }
 
+// Resolves any supported image input (raw base64, data: URI, local path, or URL) to a single
+// data: URI. Tools call this at the MCP boundary so an agent can pass a path or URL instead of
+// inlining hundreds of kilobytes of base64 into a tool argument, while everything downstream
+// keeps handling one inline representation.
+export async function resolveImageToDataUri(input: DescribeImageInput): Promise<string> {
+  const { mimeType, data } = await resolveImageBytes(input);
+  return `data:${mimeType};base64,${data}`;
+}
+
 async function resolveImageBytes(input: DescribeImageInput): Promise<{ mimeType: string; data: string }> {
   if (input.imageBase64) {
     // Accept either a raw base64 string or a data: URI.
@@ -89,8 +98,13 @@ async function resolveImageBytes(input: DescribeImageInput): Promise<{ mimeType:
   }
 
   if (input.imagePath) {
-    const mimeType = EXT_MIME_TYPES[path.extname(input.imagePath).toLowerCase()] ?? "image/jpeg";
-    const buffer = readFileSync(input.imagePath);
+    // Relative paths resolve against the server's cwd (the repo root, per .mcp.json).
+    const resolved = path.resolve(input.imagePath);
+    if (!existsSync(resolved)) {
+      throw new Error(`Image file not found: ${resolved} (from imagePath "${input.imagePath}")`);
+    }
+    const mimeType = EXT_MIME_TYPES[path.extname(resolved).toLowerCase()] ?? "image/jpeg";
+    const buffer = readFileSync(resolved);
     return { mimeType, data: buffer.toString("base64") };
   }
 

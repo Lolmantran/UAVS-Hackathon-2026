@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "b2a-merchant": {
+      "command": "node",
+      "args": ["node_modules/tsx/dist/cli.mjs", "src/server.ts"],
+      "env": {}
+    }
+  }
+}
