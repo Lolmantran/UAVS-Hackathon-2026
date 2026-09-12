@@ -29,7 +29,7 @@ Mock data is available in data/ folder
 ## Phase 2 — Embedding Pipeline
 
 - [x] Write embedding-generation function: given text and/or image, call Gemini Embedding API, return vector — `src/embedding/gemini.ts` (image path captions via vision model first, since `embedContent` is text-only)
-- [x] Build script that embeds every catalog product (image + attribute text) and writes vectors into sqlite-vec. We will run it manually once we collect enough data — `src/scripts/build-embeddings.ts` (unrun — needs `GEMINI_API_KEY`)
+- [x] Build script that embeds every catalog product (image + attribute text) and writes vectors into sqlite-vec. We will run it manually once we collect enough data — `src/scripts/build-embeddings.ts` — **run to completion: all 296/296 products embedded (30 clothing + 180 electronics + 36 skincare + 50 home-goods) into `var/catalog.vec.sqlite`, committed to git**
 - [x] Write a similarity-search function: given a query embedding, return top-N nearest catalog products from sqlite-vec — `src/embedding/vectorStore.ts::querySimilar` + `src/catalog/repository.ts::similaritySearch`
 
 ## Phase 3 — Intent Decoding & Attribute Extraction
@@ -62,11 +62,11 @@ Mock data is available in data/ folder
 ## Phase 7 — Demo Prep
 
 - [x] Write a small MCP test client (or reuse an existing agent harness) that can call each of the 6 tools against the running server — `src/scripts/test-client.ts`, already used above for `ping`, `get_bundle_suggestions`, error-path checks
-- [ ] Script 4-5 concrete demo queries covering: exact search, image-based tailoring, complementary search, bundling upsell, a clarification round-trip, and checkout — one per category where possible — **blocked on a real `GEMINI_API_KEY`** (see note below)
-- [ ] Rehearse the "decode → analyze → justify → bundle → checkout" flow end-to-end at least once, timed — **blocked on a real `GEMINI_API_KEY`**
-- [ ] Note any known gaps/limitations to mention proactively during the pitch (mocked checkout, in-memory storage, 4-category scope, clothing images unavailable without Kaggle credentials)
+- [ ] Script 4-5 concrete demo queries covering: exact search, image-based tailoring, complementary search, bundling upsell, a clarification round-trip, and checkout — one per category where possible — **unblocked, catalog is fully embedded; ready to test live in MCP Inspector**
+- [ ] Rehearse the "decode → analyze → justify → bundle → checkout" flow end-to-end at least once, timed
+- [ ] Note any known gaps/limitations to mention proactively during the pitch (mocked checkout, in-memory storage, 4-category scope, free-tier Gemini rate limits requiring a shared throttle + resumable embedding builds)
 
-**Blocker:** every tool except `get_bundle_suggestions` and the error paths of `initiate_checkout`/`find_complementary_product` needs a live `GEMINI_API_KEY` (intent extraction + embeddings both call Gemini) — add one to `.env` (copy `.env.example`) to unblock `build-embeddings.ts` and the remaining Phase 7 items.
+**Resolved:** `GEMINI_API_KEY` is configured; catalog embedding build completed (296/296 products, clothing included with real local images). Hit and fixed a free-tier quota wall along the way — see `src/config/model.ts` (switched to `gemini-3.5-flash-lite`) and `src/config/rateLimit.ts` (shared generateContent throttle). `build-embeddings.ts` now skips already-embedded products so it's safe to interrupt/resume across API key swaps.
 
 ## Explicitly Deferred (do not build for MVP)
 
