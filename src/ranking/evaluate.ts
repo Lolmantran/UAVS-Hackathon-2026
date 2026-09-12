@@ -177,8 +177,12 @@ function hasNegatedForm(corpus: string, term: string): boolean {
   return pattern.test(corpus);
 }
 
+// Only tokenize the human-readable text (description/rawPhrase), never criterion.attribute:
+// that's a machine key like "item_type", and words from it (e.g. "item", "type") show up as
+// generic schema noise in product `details` blobs ("Item Type Name", "Closure Type", ...),
+// causing unrelated products to spuriously satisfy the majority-token threshold below.
 function significantTokens(criterion: Criterion): string[] {
-  const words = `${criterion.description} ${criterion.attribute.replace(/_/g, " ")}`.toLowerCase().match(/[a-z]+/g) ?? [];
+  const words = `${criterion.description} ${criterion.rawPhrase}`.toLowerCase().match(/[a-z]+/g) ?? [];
   return Array.from(new Set(words.filter((w) => w.length >= 3 && !STOPWORDS.has(w))));
 }
 
