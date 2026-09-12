@@ -105,6 +105,11 @@ Rules:
   would normally ask about is missing AND its absence would materially change which products are
   correct (e.g. "find pants that go with this shirt" with zero stated fit/material/length preference).
   Do not ask about minor ambiguity a downstream ranking step could reasonably resolve on its own.
+- Clothing specifically: catalogs are segmented by who the item is for (men's/women's/kids'), and
+  getting this wrong returns entirely wrong products. If the category is (or resolves to) clothing
+  and neither the query text nor the reference image makes the intended wearer reasonably clear,
+  treat that as exactly the kind of missing-attribute case above and ask a clarification question
+  about it, rather than guessing or leaving it out of criteria.
 - When needsClarification is true, still populate category/useCaseSummary/criteria with whatever can
   be confidently extracted already (a partial intent), and include exactly one clarification question.
 - Never include markdown code fences or any text outside the single JSON object.`;
