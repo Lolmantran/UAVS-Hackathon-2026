@@ -1,0 +1,18 @@
+{
+  "source": "Amazon Reviews 2023, Electronics metadata",
+  "source_url": "https://mcauleylab.ucsd.edu/public_datasets/data/amazon_2023/raw/meta_categories/meta_Electronics.jsonl.gz",
+  "items": 180,
+  "records_scanned": 2863,
+  "groups": {
+    "audio": 22,
+    "charging_connectivity": 22,
+    "mobile_accessories": 22,
+    "storage": 22,
+    "networking": 22,
+    "camera_smart_home": 22,
+    "display": 22,
+    "computer_input": 22,
+    "other_electronics": 4
+  },
+  "notes": "A compact catalog generated from a bounded source stream. Product image URLs are retained; images are not redistributed locally."
+}
