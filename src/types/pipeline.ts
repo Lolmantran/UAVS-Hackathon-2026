@@ -71,6 +71,11 @@ export interface ClarificationTurn {
   answer: string;
 }
 
+export type OriginTool =
+  | "search_exact_product"
+  | "find_matching_product"
+  | "find_complementary_product";
+
 export interface Session {
   id: string;
   createdAt: number;
@@ -79,5 +84,9 @@ export interface Session {
   intent: ExtractedIntent;
   clarificationHistory: ClarificationTurn[];
   /** Which tool started this session, so answer_clarification can resume the right pipeline. */
-  originTool: string;
+  originTool: OriginTool;
+  /** Only set when originTool is "find_complementary_product" — the product being paired against. */
+  anchorProductId?: string;
+  /** The question currently awaiting an answer, if status is needs_clarification; cleared once answered. */
+  pendingQuestion?: string;
 }

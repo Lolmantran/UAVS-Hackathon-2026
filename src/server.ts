@@ -1,14 +1,16 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { registerAllTools } from "./mcp/tools/index.js";
 
 const server = new McpServer({
   name: "b2a-merchant-mcp",
   version: "0.1.0",
 });
 
-// Smoke-test tool, confirms the server + transport wiring works end to end.
-// Real tools are registered in src/mcp/tools and wired in from here in Phase 6.
+registerAllTools(server);
+
+// Smoke-test tool, kept for quick health checks independent of the real pipeline.
 server.registerTool(
   "ping",
   {

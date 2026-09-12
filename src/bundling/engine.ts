@@ -1,7 +1,7 @@
 import type { Product, ProductCategory } from "../types/catalog.js";
 import type { BundleSuggestion } from "../types/pipeline.js";
 
-const BUNDLE_DISCOUNT_PERCENT = 10;
+export const BUNDLE_DISCOUNT_PERCENT = 10;
 const MAX_SUGGESTIONS = 2;
 
 // Static "goes-with" rules, keyed by the raw taxonomy fields the real datasets already carry
@@ -50,14 +50,22 @@ function groupKeyFor(product: Product): string | undefined {
   return (product.attributes.catalog_group as string) ?? undefined;
 }
 
-export function getBundleSuggestions(anchor: Product, catalog: Product[]): BundleSuggestion {
+// Same-category products whose taxonomy group is a documented "goes-with" of the anchor's group.
+// Used both for the discounted bundle offer (getBundleSuggestions) and for find_complementary_product,
+// which ranks within this same candidate pool but without a discount attached.
+export function getComplementaryCandidates(anchor: Product, catalog: Product[]): Product[] {
   const anchorGroup = groupKeyFor(anchor);
   const rules = GOES_WITH[anchor.category];
   const complementaryGroups = anchorGroup && rules ? (rules[anchorGroup] ?? []) : [];
 
-  const candidates = catalog.filter(
+  return catalog.filter(
     (p) => p.id !== anchor.id && p.category === anchor.category && complementaryGroups.includes(groupKeyFor(p) ?? ""),
   );
+}
+
+export function getBundleSuggestions(anchor: Product, catalog: Product[]): BundleSuggestion {
+  const anchorGroup = groupKeyFor(anchor);
+  const candidates = getComplementaryCandidates(anchor, catalog);
 
   const items = candidates.slice(0, MAX_SUGGESTIONS).map((product) => ({
     product,
