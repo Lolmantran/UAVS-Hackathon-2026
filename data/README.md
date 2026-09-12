@@ -10,10 +10,8 @@ Recommendations Kaggle competition.
 | `catalog/manifest.json` | yes | The chosen `article_id`s, for reproducibility |
 | `catalog/products.json` | yes | Full metadata per image |
 | `catalog/labels.csv` | yes | Flat `image_file` -> label table for training |
-| `raw/articles.csv` | **no** | Source metadata, ~36MB, from Kaggle |
-| `images/*.jpg` | **no** | The images themselves, from Kaggle |
-
-`raw/` and `images/` are gitignored deliberately -- see Licensing below.
+| `images/*.jpg` | yes | The 30 images, 11MB |
+| `raw/articles.csv` | **no** | Source metadata, ~36MB, rebuild from Kaggle |
 
 ## Getting the data
 
@@ -28,13 +26,18 @@ Downloads ~40MB and takes about a minute -- not the 35GB full competition.
   trains on identical images).
 - `-n 100` grabs more; the sample stays spread across product groups.
 
-## Licensing -- read before pushing
+## Licensing
 
-The competition data is provided under the H&M competition rules, which
-restrict it to competition / non-commercial use. **Do not commit the images
-or `articles.csv` to this public repo** -- that is redistribution. The
-manifest + script let anyone rebuild the set from their own Kaggle account,
-which is the safe pattern.
+Images are sourced from the H&M Personalized Fashion Recommendations Kaggle
+competition and remain the property of H&M. They are included here for
+non-commercial hackathon use only. The competition rules restrict this data
+to competition / academic / non-commercial use -- review them before reusing
+this repo for anything else:
+https://www.kaggle.com/competitions/h-and-m-personalized-fashion-recommendations/rules
+
+`catalog/manifest.json` + `scripts/fetch_hm_sample.py` reproduce the exact
+same set from any Kaggle account, so the images can be dropped from version
+control later if redistribution becomes a concern.
 
 ## Notes
 
