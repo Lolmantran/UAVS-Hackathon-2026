@@ -64,8 +64,6 @@ function loadClothing(): Product[] {
       brand: null,
       priceUsd: null, // H&M metadata has no price field
       imageUrl: null,
-      // Present in metadata, but the actual file is gitignored (Kaggle license) and requires
-      // `python scripts/fetch_hm_sample.py` with Kaggle credentials to exist on disk.
       imagePath: r.image_path,
       attributes: { ...r },
       embeddingText,

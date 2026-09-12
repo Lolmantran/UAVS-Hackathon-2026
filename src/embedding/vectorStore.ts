@@ -8,7 +8,7 @@ export interface VectorStore {
   dimension: number;
 }
 
-// gemini-embedding-001's default output size (no outputDimensionality override in gemini.ts).
+// Default output size of Gemini's embedding models (no outputDimensionality override in gemini.ts).
 const DEFAULT_DIMENSION = 3072;
 
 export interface OpenVectorStoreOptions {
@@ -39,6 +39,13 @@ export function openVectorStore(dbPath: string, opts: OpenVectorStoreOptions = {
   `);
 
   return { db, dimension };
+}
+
+// Lets a rebuild resume after an interruption (e.g. swapping to a new free-tier API key)
+// without re-spending quota captioning/embedding products that already have a vector.
+export function hasEmbedding(store: VectorStore, productId: string): boolean {
+  const row = store.db.prepare("select 1 from product_map where product_id = ?").get(productId);
+  return row !== undefined;
 }
 
 export function upsertEmbedding(store: VectorStore, productId: string, embedding: number[]): void {

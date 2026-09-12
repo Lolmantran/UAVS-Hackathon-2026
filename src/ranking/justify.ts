@@ -3,6 +3,7 @@ import type { CriterionEvaluation } from "../types/pipeline.js";
 import type { Product } from "../types/catalog.js";
 import { env } from "../config/env.js";
 import { MODEL_CONFIG } from "../config/model.js";
+import { throttleGenerateContent } from "../config/rateLimit.js";
 
 // Template-based, no LLM. Default justification used everywhere in the deterministic pipeline.
 export function buildDeterministicJustification(evaluations: CriterionEvaluation[]): string {
@@ -41,6 +42,7 @@ export async function generateLlmJustification(
       .map((e) => `- ${e.criterion.description} (${e.criterion.importance}): ${e.outcome} — ${e.evidence}`)
       .join("\n");
 
+    await throttleGenerateContent();
     const response = await getClient().models.generateContent({
       model: MODEL_CONFIG.text,
       contents: [

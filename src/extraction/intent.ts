@@ -3,6 +3,7 @@
 import { GoogleGenAI, Type, type Content, type Part, type Schema } from "@google/genai";
 import { env } from "../config/env.js";
 import { MODEL_CONFIG } from "../config/model.js";
+import { throttleGenerateContent } from "../config/rateLimit.js";
 import type {
   ClarificationQuestion,
   Criterion,
@@ -140,6 +141,7 @@ export async function extractIntent(input: ExtractionInput): Promise<ExtractionR
 }
 
 async function callModel(contents: Content[]): Promise<string> {
+  await throttleGenerateContent();
   const response = await getClient().models.generateContent({
     model: MODEL_CONFIG.text,
     contents,

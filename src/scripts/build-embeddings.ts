@@ -1,13 +1,45 @@
 // Manually-run CLI: embeds the full catalog and writes vectors into sqlite-vec.
 // Run with: npx tsx src/scripts/build-embeddings.ts
 // Requires GEMINI_API_KEY to be set (see src/config/env.ts) — makes one live API call per
-// product (plus one extra captioning call per product with an imageUrl).
+// product (plus one extra captioning call per product with an image). Safe to interrupt and
+// re-run (e.g. after swapping to a fresh free-tier API key) — already-embedded products are
+// skipped, so no quota is wasted redoing them.
 import path from "node:path";
 import { loadCatalogByCategory } from "../catalog/loader.js";
 import { describeImage, generateTextEmbedding } from "../embedding/gemini.js";
-import { openVectorStore, upsertEmbedding } from "../embedding/vectorStore.js";
+import { hasEmbedding, openVectorStore, upsertEmbedding } from "../embedding/vectorStore.js";
 
 const DB_PATH = path.resolve(process.cwd(), "var/catalog.vec.sqlite");
+
+// Each product needs 1-2 sequential Gemini calls (caption + embed), and each call has multi-second
+// latency — running products in bounded-concurrency batches instead of one at a time cuts total
+// build time roughly by CONCURRENCY without bursting past free-tier per-minute rate limits.
+const CONCURRENCY = 5;
+
+async function embedProduct(product: import("../types/catalog.js").Product): Promise<number[] | null> {
+  // A remote imageUrl (electronics/skincare/home-goods) or a local imagePath (clothing) gets
+  // captioned and concatenated onto embeddingText before a single embed call — cheaper than
+  // embedding text and image separately and averaging, and keeps one vector per product.
+  let textToEmbed = product.embeddingText;
+  if (product.imageUrl || product.imagePath) {
+    try {
+      const caption = await describeImage(
+        product.imageUrl ? { imageUrl: product.imageUrl } : { imagePath: product.imagePath! },
+      );
+      textToEmbed = `${textToEmbed}. ${caption}`;
+    } catch (err) {
+      console.error(`  [warn] caption failed for ${product.id}, embedding text only:`, (err as Error).message);
+    }
+  }
+  try {
+    return await generateTextEmbedding(textToEmbed);
+  } catch (err) {
+    // A single rate-limited/failed embed call shouldn't kill the whole batch — skip this
+    // product, it can be picked up by re-running the script (upsertEmbedding is idempotent).
+    console.error(`  [warn] embed failed for ${product.id}, skipping:`, (err as Error).message);
+    return null;
+  }
+}
 
 async function main() {
   const byCategory = loadCatalogByCategory();
@@ -15,25 +47,26 @@ async function main() {
 
   for (const [category, products] of Object.entries(byCategory)) {
     let done = 0;
-    for (const product of products) {
-      // When an imageUrl exists (electronics/skincare/home-goods), caption it and concatenate
-      // the caption onto embeddingText before a single embed call — cheaper than embedding
-      // text and image separately and averaging, and keeps one vector per product.
-      let textToEmbed = product.embeddingText;
-      if (product.imageUrl) {
-        try {
-          const caption = await describeImage({ imageUrl: product.imageUrl });
-          textToEmbed = `${textToEmbed}. ${caption}`;
-        } catch (err) {
-          console.error(`  [warn] caption failed for ${product.id}, embedding text only:`, (err as Error).message);
+    // Free-tier quota (RPM and, more importantly, RPD) is scarce and shared across restarts —
+    // never re-spend it on a product that's already embedded from a prior run/API key.
+    const pending = products.filter((p) => !hasEmbedding(store, p.id));
+    const skipped = products.length - pending.length;
+    if (skipped > 0) {
+      done = skipped;
+      console.log(`${category}: skipping ${skipped}/${products.length} already embedded`);
+    }
+
+    for (let i = 0; i < pending.length; i += CONCURRENCY) {
+      const batch = pending.slice(i, i + CONCURRENCY);
+      const embeddings = await Promise.all(batch.map((p) => embedProduct(p)));
+      for (let j = 0; j < batch.length; j++) {
+        const embedding = embeddings[j];
+        if (embedding) {
+          upsertEmbedding(store, batch[j].id, embedding);
         }
+        done += 1;
+        console.log(`${category}: ${done}/${products.length}`);
       }
-
-      const embedding = await generateTextEmbedding(textToEmbed);
-      upsertEmbedding(store, product.id, embedding);
-
-      done += 1;
-      console.log(`${category}: ${done}/${products.length}`);
     }
   }
 

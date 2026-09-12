@@ -1,6 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { env } from "../config/env.js";
 import { MODEL_CONFIG } from "../config/model.js";
+import { throttleGenerateContent } from "../config/rateLimit.js";
+
+const EXT_MIME_TYPES: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+};
 
 let client: GoogleGenAI | undefined;
 
@@ -28,13 +38,16 @@ export async function generateTextEmbedding(text: string): Promise<number[]> {
 export interface DescribeImageInput {
   imageUrl?: string;
   imageBase64?: string;
+  imagePath?: string;
 }
 
 // Captions an image via the vision-capable text model, since embedContent is text-only.
-// Exactly one of imageUrl/imageBase64 must be given; imageUrl is fetched and inlined as bytes.
+// Exactly one of imageUrl/imageBase64/imagePath must be given; imageUrl is fetched and
+// imagePath is read from local disk, both inlined as base64 bytes.
 export async function describeImage(input: DescribeImageInput): Promise<string> {
   const { mimeType, data } = await resolveImageBytes(input);
 
+  await throttleGenerateContent();
   const response = await getClient().models.generateContent({
     model: MODEL_CONFIG.text,
     contents: [
@@ -75,5 +88,11 @@ async function resolveImageBytes(input: DescribeImageInput): Promise<{ mimeType:
     return { mimeType, data: buffer.toString("base64") };
   }
 
-  throw new Error("describeImage requires either imageUrl or imageBase64");
+  if (input.imagePath) {
+    const mimeType = EXT_MIME_TYPES[path.extname(input.imagePath).toLowerCase()] ?? "image/jpeg";
+    const buffer = readFileSync(input.imagePath);
+    return { mimeType, data: buffer.toString("base64") };
+  }
+
+  throw new Error("describeImage requires one of imageUrl, imageBase64, or imagePath");
 }
