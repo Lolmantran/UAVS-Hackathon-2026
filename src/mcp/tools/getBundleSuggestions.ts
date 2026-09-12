@@ -12,7 +12,8 @@ export function registerGetBundleSuggestions(server: McpServer): void {
       title: "Get bundle suggestions",
       description:
         "Merchant-side upsell: given an anchor product (e.g. facewash), return 1-2 complementary " +
-        "products (e.g. toner, moisturiser) with a mocked bundle discount, to encourage a larger basket.",
+        "products (e.g. toner, moisturiser) with a mocked bundle discount and a proposed bundle " +
+        "price, to encourage a larger basket. Informational only — does not create an order.",
       inputSchema: {
         anchor_product_id: z.string().min(1).describe("Product id to build a bundle offer around"),
       },
@@ -32,7 +33,9 @@ export function registerGetBundleSuggestions(server: McpServer): void {
             type: "text",
             text:
               bundle.items.length > 0
-                ? `${bundle.items.length} bundle item(s) suggested alongside "${anchor.title}".`
+                ? `${bundle.items.length} bundle item(s) suggested alongside "${anchor.title}" — ` +
+                  `proposed bundle price $${payload.proposal.proposedTotalUsd} USD ` +
+                  `(save $${payload.proposal.savingsUsd} vs. $${payload.proposal.subtotalUsd} full price).`
                 : `No complementary products found for "${anchor.title}"'s taxonomy group.`,
           },
         ],
