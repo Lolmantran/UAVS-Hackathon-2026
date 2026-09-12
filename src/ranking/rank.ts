@@ -74,9 +74,14 @@ export function rankProducts(
   return finalizeRanking(scored);
 }
 
+// Only the top-ranked candidates (by deterministic mandatory-match count, then similarity) are
+// worth the slow, rate-limited LLM fallback call — sending the whole pool was the dominant cost
+// on every search (multiple sequential throttled batches, ~4.3s apart each, see rateLimit.ts).
+const MAX_SEMANTIC_CANDIDATES = 3;
+
 // Same as rankProducts, plus a semantic second pass over whatever the deterministic keyword
 // evaluator left as "unknown" (see semanticEvaluate.ts) — e.g. "red" resolving "bright color".
-// Batched into a single extra model call regardless of candidate pool size.
+// Only run over the top MAX_SEMANTIC_CANDIDATES candidates, not the whole pool (see above).
 export async function rankProductsSemantic(
   criteria: Criterion[],
   candidates: Product[],
@@ -86,11 +91,22 @@ export async function rankProductsSemantic(
     scoreProduct(criteria, product, similarities.get(product.id) ?? 0),
   );
 
-  const pending = scored.flatMap((s) =>
-    s.evaluations
-      .filter((e) => e.outcome === "unknown")
-      .map((e) => ({ product: s.product, criterion: e.criterion })),
-  );
+  const topForResolution = [...scored]
+    .sort((a, b) => {
+      const mandatoryDiff = countSatisfied(b.evaluations, "mandatory") - countSatisfied(a.evaluations, "mandatory");
+      if (mandatoryDiff !== 0) return mandatoryDiff;
+      return b.similarity - a.similarity;
+    })
+    .slice(0, MAX_SEMANTIC_CANDIDATES);
+  const idsForResolution = new Set(topForResolution.map((s) => s.product.id));
+
+  const pending = scored
+    .filter((s) => idsForResolution.has(s.product.id))
+    .flatMap((s) =>
+      s.evaluations
+        .filter((e) => e.outcome === "unknown")
+        .map((e) => ({ product: s.product, criterion: e.criterion })),
+    );
 
   if (pending.length > 0) {
     const resolved = await resolveSemanticUnknowns(pending);
