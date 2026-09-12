@@ -1,0 +1,17 @@
+{
+  "source": "Amazon Reviews 2023, Home and Kitchen metadata",
+  "source_url": "https://mcauleylab.ucsd.edu/public_datasets/data/amazon_2023/raw/meta_categories/meta_Home_and_Kitchen.jsonl.gz",
+  "items": 50,
+  "records_scanned": 383,
+  "groups": {
+    "kitchen_appliances": 7,
+    "bedding_bath": 7,
+    "lighting": 7,
+    "decor": 7,
+    "furniture_storage": 7,
+    "kitchen_cookware": 7,
+    "cleaning_laundry": 7,
+    "other_homegoods": 1
+  },
+  "notes": "A compact catalog generated from a bounded source stream. Product image URLs are retained; images are not redistributed locally."
+}
