@@ -1,0 +1,15 @@
+# Kaggle competition data - do not redistribute (see data/README.md)
+data/raw/
+data/images/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Secrets
+.env
+kaggle.json
+access_token
+.kaggle/
