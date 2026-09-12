@@ -1,12 +1,12 @@
 // Manually-run CLI: embeds the full catalog and writes vectors into sqlite-vec.
 // Run with: npx tsx src/scripts/build-embeddings.ts
-// Requires GEMINI_API_KEY to be set (see src/config/env.ts) — makes one live API call per
-// product (plus one extra captioning call per product with an image). Safe to interrupt and
-// re-run (e.g. after swapping to a fresh free-tier API key) — already-embedded products are
-// skipped, so no quota is wasted redoing them.
+// Requires GEMINI_API_KEY to be set (see src/config/env.ts) — makes one live embedContent call
+// per product (text + image together, gemini-embedding-2 is natively multimodal). Safe to
+// interrupt and re-run (e.g. after swapping to a fresh free-tier API key) — already-embedded
+// products are skipped, so no quota is wasted redoing them.
 import path from "node:path";
 import { loadCatalogByCategory } from "../catalog/loader.js";
-import { describeImage, generateTextEmbedding } from "../embedding/gemini.js";
+import { generateEmbedding } from "../embedding/gemini.js";
 import { hasEmbedding, openVectorStore, upsertEmbedding } from "../embedding/vectorStore.js";
 
 const DB_PATH = path.resolve(process.cwd(), "var/catalog.vec.sqlite");
@@ -17,22 +17,17 @@ const DB_PATH = path.resolve(process.cwd(), "var/catalog.vec.sqlite");
 const CONCURRENCY = 5;
 
 async function embedProduct(product: import("../types/catalog.js").Product): Promise<number[] | null> {
-  // A remote imageUrl (electronics/skincare/home-goods) or a local imagePath (clothing) gets
-  // captioned and concatenated onto embeddingText before a single embed call — cheaper than
-  // embedding text and image separately and averaging, and keeps one vector per product.
-  let textToEmbed = product.embeddingText;
-  if (product.imageUrl || product.imagePath) {
-    try {
-      const caption = await describeImage(
-        product.imageUrl ? { imageUrl: product.imageUrl } : { imagePath: product.imagePath! },
-      );
-      textToEmbed = `${textToEmbed}. ${caption}`;
-    } catch (err) {
-      console.error(`  [warn] caption failed for ${product.id}, embedding text only:`, (err as Error).message);
-    }
-  }
+  // A remote imageUrl (electronics/skincare/home-goods) or a local imagePath (clothing) goes
+  // into the same embedContent call as embeddingText — one vector per product, no captioning
+  // round-trip.
+  const image = product.imageUrl
+    ? { imageUrl: product.imageUrl }
+    : product.imagePath
+      ? { imagePath: product.imagePath }
+      : undefined;
+
   try {
-    return await generateTextEmbedding(textToEmbed);
+    return await generateEmbedding({ text: product.embeddingText, image });
   } catch (err) {
     // A single rate-limited/failed embed call shouldn't kill the whole batch — skip this
     // product, it can be picked up by re-running the script (upsertEmbedding is idempotent).
