@@ -1,6 +1,5 @@
-# Kaggle competition data - do not redistribute (see data/README.md)
+# Kaggle competition source data (36MB) - rebuild with scripts/fetch_hm_sample.py
 data/raw/
-data/images/
 
 # Python
 __pycache__/
