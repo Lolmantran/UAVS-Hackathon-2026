@@ -13,3 +13,4 @@ kaggle.json
 access_token
 .kaggle/
 node_modules/
+server.log
