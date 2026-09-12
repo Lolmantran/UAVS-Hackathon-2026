@@ -8,6 +8,7 @@ import type {
 import type { Product } from "../types/catalog.js";
 import { evaluateCriterion } from "./evaluate.js";
 import { buildDeterministicJustification } from "./justify.js";
+import { resolveSemanticUnknowns } from "./semanticEvaluate.js";
 
 function countSatisfied(evaluations: CriterionEvaluation[], importance: CriterionImportance): number {
   return evaluations.filter((e) => e.criterion.importance === importance && e.outcome === "satisfied").length;
@@ -37,15 +38,7 @@ export function scoreProduct(criteria: Criterion[], product: Product, similarity
   };
 }
 
-export function rankProducts(
-  criteria: Criterion[],
-  candidates: Product[],
-  similarities: Map<string, number>,
-): RankedSearchResult {
-  const scored = candidates.map((product) =>
-    scoreProduct(criteria, product, similarities.get(product.id) ?? 0),
-  );
-
+function finalizeRanking(scored: ScoredProduct[]): RankedSearchResult {
   const ranked = scored
     .filter((s) => s.eligible)
     .sort((a, b) => {
@@ -67,4 +60,57 @@ export function rankProducts(
     });
 
   return { ranked, secondary };
+}
+
+export function rankProducts(
+  criteria: Criterion[],
+  candidates: Product[],
+  similarities: Map<string, number>,
+): RankedSearchResult {
+  const scored = candidates.map((product) =>
+    scoreProduct(criteria, product, similarities.get(product.id) ?? 0),
+  );
+
+  return finalizeRanking(scored);
+}
+
+// Same as rankProducts, plus a semantic second pass over whatever the deterministic keyword
+// evaluator left as "unknown" (see semanticEvaluate.ts) — e.g. "red" resolving "bright color".
+// Batched into a single extra model call regardless of candidate pool size.
+export async function rankProductsSemantic(
+  criteria: Criterion[],
+  candidates: Product[],
+  similarities: Map<string, number>,
+): Promise<RankedSearchResult> {
+  const scored = candidates.map((product) =>
+    scoreProduct(criteria, product, similarities.get(product.id) ?? 0),
+  );
+
+  const pending = scored.flatMap((s) =>
+    s.evaluations
+      .filter((e) => e.outcome === "unknown")
+      .map((e) => ({ product: s.product, criterion: e.criterion })),
+  );
+
+  if (pending.length > 0) {
+    const resolved = await resolveSemanticUnknowns(pending);
+    for (const s of scored) {
+      let changed = false;
+      s.evaluations = s.evaluations.map((e) => {
+        if (e.outcome !== "unknown") return e;
+        const patch = resolved.get(`${s.product.id}::${e.criterion.attribute}`);
+        if (!patch) return e;
+        changed = true;
+        return { criterion: e.criterion, outcome: patch.outcome, evidence: patch.evidence };
+      });
+      if (changed) {
+        s.eligible = s.evaluations
+          .filter((e) => e.criterion.importance === "mandatory")
+          .every((e) => e.outcome === "satisfied");
+        s.justification = buildDeterministicJustification(s.evaluations);
+      }
+    }
+  }
+
+  return finalizeRanking(scored);
 }

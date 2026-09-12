@@ -23,7 +23,9 @@ function flattenValue(value: unknown): string {
 
 // Corpus a criterion is checked against: title/brand/embeddingText plus raw attributes
 // (embeddingText already folds in most attribute fields, but not all — e.g. price, ratings).
-function buildCorpus(product: Product): string {
+// Exported so the semantic fallback evaluator (semanticEvaluate.ts) can give the model the same
+// text this deterministic pass already looked at, instead of re-deriving it.
+export function buildCorpus(product: Product): string {
   return [product.title, product.brand ?? "", product.embeddingText, flattenValue(product.attributes)]
     .join(" ")
     .toLowerCase();

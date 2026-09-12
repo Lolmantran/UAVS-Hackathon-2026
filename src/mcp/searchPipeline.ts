@@ -1,7 +1,7 @@
 import type { Product, ProductCategory } from "../types/catalog.js";
 import type { ClarificationTurn, ExtractionResult, OriginTool } from "../types/pipeline.js";
 import { extractIntent } from "../extraction/intent.js";
-import { rankProducts } from "../ranking/rank.js";
+import { rankProductsSemantic } from "../ranking/rank.js";
 import { similaritySearch, getAllProducts, getProductsByCategory, getProduct } from "../catalog/repository.js";
 import { createSession, getSession, updateSession } from "../session/store.js";
 import { getComplementaryCandidates } from "../bundling/engine.js";
@@ -134,7 +134,7 @@ async function settleExtraction(extraction: ExtractionResult, ctx: SettleContext
     if (poolIds.has(match.product.id)) similarities.set(match.product.id, match.similarity);
   }
 
-  const { ranked, secondary } = rankProducts(intent.criteria, pool, similarities);
+  const { ranked, secondary } = await rankProductsSemantic(intent.criteria, pool, similarities);
 
   const sessionPatch = {
     originalQuery: ctx.originalQuery,
