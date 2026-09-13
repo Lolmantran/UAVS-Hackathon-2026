@@ -215,5 +215,27 @@ assert.ok(
   clothingBundle.items.every((item) => item.product.category === "clothing"),
   "clothing bundle suggestions should stay inside the clothing category",
 );
+assert.ok(
+  clothingBundle.items.every((item) => item.product.priceUsd !== null),
+  "synthetic clothing prices should make every clothing bundle priceable",
+);
 
-console.log("Demo catalog checks passed: 32 structured fixtures, four controlled retrieval cases, clothing bundle, clothing unchanged.");
+const watchAnchor = byCategory.electronics.find((product) => product.id === "DEMO-WATCH-EXACT");
+assert.ok(watchAnchor, "the exact running watch fixture should be available for bundle tests");
+const watchBundle = getBundleSuggestions(watchAnchor, byCategory.electronics, { query: "running with music" });
+assert.deepEqual(
+  watchBundle.items.map((item) => item.product.id),
+  ["DEMO-BUDS-EXACT"],
+  "a running watch should offer workout-ready running earbuds, never an unrelated electronics category",
+);
+
+const formalTop = byCategory.clothing.find((product) => product.id === "0572128005");
+assert.ok(formalTop, "the ladieswear blouse fixture should be available for formal bundle tests");
+const formalBundle = getBundleSuggestions(formalTop, byCategory.clothing, { query: "formal wedding outfit" });
+assert.equal(
+  formalBundle.items[0]?.product.id,
+  "0592975003",
+  "a formal ladieswear upper-body item should lead with ladieswear tailored trousers",
+);
+
+console.log("Demo catalog checks passed: 32 structured fixtures, four controlled retrieval cases, priceable clothing bundles, and purpose-aware complements.");

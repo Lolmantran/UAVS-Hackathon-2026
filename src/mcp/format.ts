@@ -9,6 +9,19 @@ export function toProductSummary(product: Product) {
     brand: product.brand,
     priceUsd: product.priceUsd,
     imageUrl: product.imageUrl,
+    imagePath: product.imagePath,
+    // A null value is meaningful: it says the source catalog did not provide that
+    // data, rather than implying the field was accidentally omitted in formatting.
+    availability: {
+      price: product.priceUsd !== null,
+      remoteImage: product.imageUrl !== null,
+      localImage: product.imagePath !== null,
+    },
+    // Keep the original category-specific catalog record available to buyers and
+    // downstream agents. For example, H&M clothing records include colour,
+    // product type, and the source description even when their dataset has no
+    // current price or hosted image URL.
+    catalogMetadata: product.attributes,
   };
 }
 

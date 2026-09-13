@@ -20,6 +20,42 @@ interface HmClothingRecord {
   detail_desc: string;
 }
 
+// The H&M sample is metadata-only, so it cannot support a credible bundle-price demo on its
+// own. These clearly labelled, stable demo prices let the original 30 fixtures take part in
+// pricing calculations without misrepresenting a source-catalog price.
+const SYNTHETIC_CLOTHING_PRICE_USD: Record<string, number> = {
+  "0111586001": 15,
+  "0112679048": 25,
+  "0146721001": 9,
+  "0181160009": 70,
+  "0192460006": 59,
+  "0458083007": 18,
+  "0469562048": 49,
+  "0484108014": 42,
+  "0515692013": 45,
+  "0525500023": 48,
+  "0537183005": 22,
+  "0539744001": 75,
+  "0541491015": 28,
+  "0553873005": 25,
+  "0555351001": 29,
+  "0558178001": 28,
+  "0571343003": 16,
+  "0572128005": 48,
+  "0573085001": 55,
+  "0576782001": 35,
+  "0586677004": 36,
+  "0592975003": 62,
+  "0599102001": 79,
+  "0599680001": 69,
+  "0604430001": 28,
+  "0615197001": 8,
+  "0626461002": 89,
+  "0633152012": 49,
+  "0650534002": 65,
+  "0682238013": 45,
+};
+
 interface AmazonRecord {
   id: string;
   main_category: string;
@@ -66,6 +102,10 @@ function loadJson<T>(relativePath: string): T {
 function loadClothing(): Product[] {
   const records = loadJson<HmClothingRecord[]>("clothing/products.json");
   return records.map((r) => {
+    const syntheticPriceUsd = SYNTHETIC_CLOTHING_PRICE_USD[r.article_id];
+    if (syntheticPriceUsd === undefined) {
+      throw new Error(`Missing synthetic demo price for clothing article ${r.article_id}`);
+    }
     const embeddingText = [
       r.prod_name,
       r.product_type_name,
@@ -75,6 +115,7 @@ function loadClothing(): Product[] {
       r.department_name,
       r.garment_group_name,
       r.detail_desc,
+      `Synthetic demo price: $${syntheticPriceUsd} USD`,
     ]
       .filter(Boolean)
       .join(". ");
@@ -84,10 +125,14 @@ function loadClothing(): Product[] {
       category: "clothing" as ProductCategory,
       title: r.prod_name,
       brand: null,
-      priceUsd: null, // H&M metadata has no price field
+      priceUsd: syntheticPriceUsd,
       imageUrl: null,
       imagePath: r.image_path,
-      attributes: { ...r },
+      attributes: {
+        ...r,
+        demo_price_usd: syntheticPriceUsd,
+        price_source: "synthetic demo price; H&M source metadata did not include a price",
+      },
       embeddingText,
     };
   });
