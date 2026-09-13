@@ -16,11 +16,11 @@ const EXPECTED_FAMILIES = new Map([
 const byCategory = loadCatalogByCategory();
 const nonClothing = [...byCategory.electronics, ...byCategory.skincare, ...byCategory["home-goods"]];
 
-assert.equal(nonClothing.length, 37, "demo catalog should contain 37 non-clothing fixtures including bundle add-ons");
+assert.equal(nonClothing.length, 47, "demo catalog should contain the expected non-clothing fixtures including dress watches");
 assert.equal(byCategory.clothing.length, 100, "the merged clothing sample should contain the 100 current fixtures");
 assert.ok(
-  nonClothing.every((product) => product.imageUrl !== null),
-  "every non-clothing fixture should expose a reusable illustrative image URL",
+  nonClothing.every((product) => product.imageUrl !== null || product.imagePath !== null),
+  "every non-clothing fixture should expose a reusable illustrative image",
 );
 
 for (const [family, expectedCount] of EXPECTED_FAMILIES) {
@@ -271,4 +271,4 @@ assert.equal(
   "a formal ladieswear upper-body item should stay within the same audience group",
 );
 
-console.log("Demo catalog checks passed: 37 image-backed non-clothing fixtures, 100 clothing fixtures, and metadata-driven complements.");
+console.log("Demo catalog checks passed: catalog fixtures, local product imagery, and metadata-driven complements are valid.");

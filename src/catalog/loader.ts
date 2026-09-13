@@ -204,7 +204,7 @@ function loadClothing(): Product[] {
       brand: null,
       priceUsd: syntheticPriceUsd,
       imageUrl: null,
-      imagePath: r.image_path,
+      imagePath: r.image_path ? path.resolve(PROJECT_ROOT, r.image_path) : null,
       attributes: { ...r },
       embeddingText,
     };
@@ -242,7 +242,7 @@ function loadAmazonCategory(category: ProductCategory, fileName: string): Produc
       brand: r.brand_or_store ?? null,
       priceUsd: r.price_usd ?? null,
       imageUrl: r.image_url ?? null,
-      imagePath: r.image_path ?? null,
+      imagePath: r.image_path ? path.resolve(PROJECT_ROOT, r.image_path) : null,
       attributes: { ...r },
       embeddingText,
     };
@@ -253,6 +253,7 @@ export function loadCatalog(): Product[] {
   return [
     ...loadClothing(),
     ...loadAmazonCategory("electronics", "electronics_catalog.json"),
+    ...loadAmazonCategory("electronics", "dress_watches_catalog.json"),
     ...loadAmazonCategory("skincare", "skincare_catalog.json"),
     ...loadAmazonCategory("home-goods", "homegoods_catalog.json"),
   ];
