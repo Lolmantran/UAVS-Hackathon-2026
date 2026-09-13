@@ -35,7 +35,9 @@ export interface EmbedInput {
 
 // gemini-embedding-2 is natively multimodal — text and image parts go into one embedContent
 // call and land in the same vector space, no separate captioning step needed.
-export async function generateEmbedding(input: EmbedInput): Promise<number[]> {
+// `onWait` is opt-in (see throttleEmbedding) — a bulk CLI rebuild can pass one to show the
+// free-tier cooldown between calls; interactive server paths leave it unset and stay silent.
+export async function generateEmbedding(input: EmbedInput, onWait?: (waitMs: number) => void): Promise<number[]> {
   const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
   if (input.text) {
     parts.push({ text: input.text });
@@ -48,7 +50,7 @@ export async function generateEmbedding(input: EmbedInput): Promise<number[]> {
     throw new Error("generateEmbedding requires at least one of text or image");
   }
 
-  await throttleEmbedding();
+  await throttleEmbedding(onWait);
   const response = await getClient().models.embedContent({
     model: MODEL_CONFIG.embedding,
     contents: parts,

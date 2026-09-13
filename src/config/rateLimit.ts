@@ -18,11 +18,15 @@ export async function throttleGenerateContent(): Promise<void> {
 
 // Keep embedding calls at the same conservative pace as generation calls. The demo catalog is
 // deliberately small, so a sequential ~14 RPM rebuild is preferable to risking free-tier limits.
-export async function throttleEmbedding(): Promise<void> {
+// `onWait` is opt-in and silent by default: interactive server paths (a live search request)
+// shouldn't print anything, but a bulk CLI rebuild (many calls, minutes-long) wants to show the
+// free-tier cooldown between them rather than appear to hang.
+export async function throttleEmbedding(onWait?: (waitMs: number) => void): Promise<void> {
   const now = Date.now();
   const wait = Math.max(0, nextEmbeddingAvailable - now);
   nextEmbeddingAvailable = Math.max(now, nextEmbeddingAvailable) + MIN_INTERVAL_MS;
   if (wait > 0) {
+    onWait?.(wait);
     await new Promise((resolve) => setTimeout(resolve, wait));
   }
 }

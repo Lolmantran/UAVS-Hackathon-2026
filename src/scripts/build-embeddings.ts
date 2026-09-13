@@ -16,6 +16,10 @@ const DB_PATH = path.resolve(process.cwd(), "var/catalog.vec.sqlite");
 // build time roughly by CONCURRENCY without bursting past free-tier per-minute rate limits.
 const CONCURRENCY = 1;
 
+function logCooldown(waitMs: number): void {
+  console.log(`  cooling down ${(waitMs / 1000).toFixed(1)}s (free-tier rate limit)...`);
+}
+
 async function embedProduct(product: import("../types/catalog.js").Product): Promise<number[] | null> {
   // A remote imageUrl (electronics/skincare/home-goods) or a local imagePath (clothing) goes
   // into the same embedContent call as embeddingText — one vector per product, no captioning
@@ -27,7 +31,7 @@ async function embedProduct(product: import("../types/catalog.js").Product): Pro
       : undefined;
 
   try {
-    return await generateEmbedding({ text: product.embeddingText, image });
+    return await generateEmbedding({ text: product.embeddingText, image }, logCooldown);
   } catch (err) {
     // A single rate-limited/failed embed call shouldn't kill the whole batch — skip this
     // product, it can be picked up by re-running the script (upsertEmbedding is idempotent).
