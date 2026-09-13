@@ -74,11 +74,32 @@ function hasFormalIntent(query: string | undefined): boolean {
   return /\b(formal|wedding|ceremony|black[ -]?tie|tailoring|dressy)\b/i.test(query ?? "");
 }
 
-function nestedBoolean(product: Product, section: string, key: string): boolean {
+interface BundlingMetadata {
+  targets: string[];
+  roles: string[];
+  compatibilityTags: string[];
+  offerEligible: boolean;
+  priority: number;
+}
+
+function strings(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function bundlingMetadata(product: Product): BundlingMetadata {
   const structured = product.attributes.structured_attributes;
-  if (!structured || typeof structured !== "object") return false;
-  const value = (structured as Record<string, unknown>)[section];
-  return Boolean(value && typeof value === "object" && (value as Record<string, unknown>)[key] === true);
+  const raw =
+    structured && typeof structured === "object"
+      ? (structured as Record<string, unknown>).bundling
+      : undefined;
+  const metadata = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+  return {
+    targets: strings(metadata.targets),
+    roles: strings(metadata.roles),
+    compatibilityTags: strings(metadata.compatibility_tags),
+    offerEligible: metadata.offer_eligible === true,
+    priority: typeof metadata.priority === "number" ? metadata.priority : 0,
+  };
 }
 
 function apparelCompatibilityScore(anchor: Product, candidate: Product, context: BundleContext): number {
@@ -111,37 +132,46 @@ function complementaryGroups(anchor: Product): string[] {
   return anchorGroup && rules ? (rules[anchorGroup] ?? []) : [];
 }
 
-function getPurposeAwareCandidates(anchor: Product, catalog: Product[]): Product[] | undefined {
-  // Product-family relationships take precedence over broad electronics taxonomy. This keeps a
-  // running-watch offer relevant to running (earbuds for music) and excludes cameras entirely.
-  if (anchor.category === "electronics" && productFamilyFor(anchor) === "running_smartwatch") {
-    return catalog.filter(
-      (product) =>
-        product.id !== anchor.id &&
-        product.category === "electronics" &&
-        productFamilyFor(product) === "running_wireless_earbuds" &&
-        nestedBoolean(product, "connectivity", "fast_pairing") &&
-        nestedBoolean(product, "connectivity", "multipoint") &&
-        nestedBoolean(product, "workout", "sweat_resistant") &&
-        nestedBoolean(product, "workout", "secure_fit"),
+function metadataCandidates(anchor: Product, catalog: Product[]): Product[] | undefined {
+  const anchorMetadata = bundlingMetadata(anchor);
+  if (anchorMetadata.targets.length === 0) return undefined;
+  return catalog.filter((product) => {
+    const candidateMetadata = bundlingMetadata(product);
+    return (
+      product.id !== anchor.id &&
+      product.category === anchor.category &&
+      candidateMetadata.offerEligible &&
+      candidateMetadata.roles.some((role) => anchorMetadata.targets.includes(role))
     );
-  }
+  });
+}
 
-  // Do not promote a much more expensive running watch after someone searched for earbuds. The
-  // active demo has no suitable earbud add-on (case/charger) yet, so no offer is better.
-  if (anchor.category === "electronics" && productFamilyFor(anchor) === "running_wireless_earbuds") {
-    return [];
-  }
+function candidateKey(anchor: Product, candidate: Product): string {
+  const targets = bundlingMetadata(anchor).targets;
+  const role = bundlingMetadata(candidate).roles.find((item) => targets.includes(item));
+  return role ?? groupKeyFor(candidate) ?? productFamilyFor(candidate) ?? candidate.id;
+}
 
-  return undefined;
+function candidateOrder(anchor: Product, candidate: Product): number {
+  const targets = bundlingMetadata(anchor).targets;
+  const role = bundlingMetadata(candidate).roles.find((item) => targets.includes(item));
+  if (role) return targets.indexOf(role);
+  return complementaryGroups(anchor).indexOf(groupKeyFor(candidate) ?? "");
+}
+
+function metadataCompatibilityScore(anchor: Product, candidate: Product): number {
+  const anchorTags = new Set(bundlingMetadata(anchor).compatibilityTags);
+  const candidateMetadata = bundlingMetadata(candidate);
+  const sharedTags = candidateMetadata.compatibilityTags.filter((tag) => anchorTags.has(tag)).length;
+  return candidateMetadata.priority + sharedTags * 10;
 }
 
 // Same-category products whose taxonomy group is a documented "goes-with" of the anchor's group.
 // Used both for the discounted bundle offer (getBundleSuggestions) and for find_complementary_product,
 // which ranks within this same candidate pool but without a discount attached.
 export function getComplementaryCandidates(anchor: Product, catalog: Product[]): Product[] {
-  const purposeAware = getPurposeAwareCandidates(anchor, catalog);
-  if (purposeAware) return purposeAware;
+  const metadataDriven = metadataCandidates(anchor, catalog);
+  if (metadataDriven) return metadataDriven;
 
   const groups = complementaryGroups(anchor);
 
@@ -153,17 +183,16 @@ export function getComplementaryCandidates(anchor: Product, catalog: Product[]):
 export function getBundleSuggestions(anchor: Product, catalog: Product[], context: BundleContext = {}): BundleSuggestion {
   const anchorGroup = groupKeyFor(anchor);
   const candidates = getComplementaryCandidates(anchor, catalog);
-  const groupOrder = complementaryGroups(anchor);
   const sortedCandidates = [...candidates].sort((left, right) => {
-    const leftGroupOrder = groupOrder.indexOf(groupKeyFor(left) ?? "");
-    const rightGroupOrder = groupOrder.indexOf(groupKeyFor(right) ?? "");
-    const leftScore = anchor.category === "clothing" ? apparelCompatibilityScore(anchor, left, context) : 0;
-    const rightScore = anchor.category === "clothing" ? apparelCompatibilityScore(anchor, right, context) : 0;
-    return rightScore - leftScore || leftGroupOrder - rightGroupOrder || left.title.localeCompare(right.title);
+    const leftScore =
+      anchor.category === "clothing" ? apparelCompatibilityScore(anchor, left, context) : metadataCompatibilityScore(anchor, left);
+    const rightScore =
+      anchor.category === "clothing" ? apparelCompatibilityScore(anchor, right, context) : metadataCompatibilityScore(anchor, right);
+    return rightScore - leftScore || candidateOrder(anchor, left) - candidateOrder(anchor, right) || left.title.localeCompare(right.title);
   });
   const usedGroups = new Set<string>();
   const selected = sortedCandidates.filter((product) => {
-    const group = groupKeyFor(product) ?? productFamilyFor(product) ?? product.id;
+    const group = candidateKey(anchor, product);
     if (usedGroups.has(group)) return false;
     usedGroups.add(group);
     return true;

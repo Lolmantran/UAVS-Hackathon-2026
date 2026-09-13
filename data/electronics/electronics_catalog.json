@@ -38,6 +38,17 @@
       "schema_version": 1,
       "product_family": "running_smartwatch",
       "variant": "exact_match",
+      "bundling": {
+        "targets": [
+          "running_audio"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": true,
+        "priority": 100
+      },
       "item_type": "smartwatch",
       "use_cases": [
         "running",
@@ -64,7 +75,7 @@
         ]
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ajKKbi76L._AC_UL1000_.jpg"
   },
   {
     "id": "DEMO-WATCH-SPORT",
@@ -104,6 +115,17 @@
       "schema_version": 1,
       "product_family": "running_smartwatch",
       "variant": "missing_preferred_formal_style",
+      "bundling": {
+        "targets": [
+          "running_audio"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "smartwatch",
       "use_cases": [
         "running",
@@ -128,7 +150,7 @@
         ]
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ajKKbi76L._AC_UL1000_.jpg"
   },
   {
     "id": "DEMO-WATCH-NO-GPS",
@@ -168,6 +190,17 @@
       "schema_version": 1,
       "product_family": "running_smartwatch",
       "variant": "missing_mandatory_gps",
+      "bundling": {
+        "targets": [
+          "running_audio"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "smartwatch",
       "use_cases": [
         "casual_workout",
@@ -192,7 +225,7 @@
         ]
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ajKKbi76L._AC_UL1000_.jpg"
   },
   {
     "id": "DEMO-WATCH-NO-HR",
@@ -232,6 +265,17 @@
       "schema_version": 1,
       "product_family": "running_smartwatch",
       "variant": "missing_mandatory_heart_rate",
+      "bundling": {
+        "targets": [
+          "running_audio"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "smartwatch",
       "use_cases": [
         "running",
@@ -256,7 +300,7 @@
         ]
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ajKKbi76L._AC_UL1000_.jpg"
   },
   {
     "id": "DEMO-BUDS-EXACT",
@@ -295,6 +339,21 @@
       "schema_version": 1,
       "product_family": "running_wireless_earbuds",
       "variant": "exact_match",
+      "bundling": {
+        "roles": [
+          "running_audio"
+        ],
+        "targets": [
+          "earbud_charging_case",
+          "portable_running_power"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": true,
+        "priority": 100
+      },
       "item_type": "wireless_earbuds",
       "use_cases": [
         "running",
@@ -313,7 +372,7 @@
         "ear_fins": true
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/6182myBMxuL._AC_SL1500_.jpg"
   },
   {
     "id": "DEMO-BUDS-NO-MULTIPOINT",
@@ -352,6 +411,21 @@
       "schema_version": 1,
       "product_family": "running_wireless_earbuds",
       "variant": "missing_mandatory_multipoint",
+      "bundling": {
+        "roles": [
+          "running_audio"
+        ],
+        "targets": [
+          "earbud_charging_case",
+          "portable_running_power"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "wireless_earbuds",
       "use_cases": [
         "running",
@@ -370,7 +444,7 @@
         "ear_fins": true
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/6182myBMxuL._AC_SL1500_.jpg"
   },
   {
     "id": "DEMO-BUDS-NO-WORKOUT",
@@ -409,6 +483,21 @@
       "schema_version": 1,
       "product_family": "running_wireless_earbuds",
       "variant": "missing_mandatory_workout_fit",
+      "bundling": {
+        "roles": [
+          "running_audio"
+        ],
+        "targets": [
+          "earbud_charging_case",
+          "portable_running_power"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "wireless_earbuds",
       "use_cases": [
         "office",
@@ -427,7 +516,7 @@
         "ear_fins": false
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/6182myBMxuL._AC_SL1500_.jpg"
   },
   {
     "id": "DEMO-BUDS-LEGACY",
@@ -466,6 +555,21 @@
       "schema_version": 1,
       "product_family": "running_wireless_earbuds",
       "variant": "missing_mandatory_connection_features",
+      "bundling": {
+        "roles": [
+          "running_audio"
+        ],
+        "targets": [
+          "earbud_charging_case",
+          "portable_running_power"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "wireless_earbuds",
       "use_cases": [
         "running",
@@ -484,7 +588,7 @@
         "ear_fins": true
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/6182myBMxuL._AC_SL1500_.jpg"
   },
   {
     "id": "DEMO-CAMERA-EXACT",
@@ -523,6 +627,17 @@
       "schema_version": 1,
       "product_family": "outdoor_security_camera",
       "variant": "exact_match",
+      "bundling": {
+        "targets": [
+          "camera_storage",
+          "camera_mount"
+        ],
+        "compatibility_tags": [
+          "outdoor_security"
+        ],
+        "offer_eligible": true,
+        "priority": 100
+      },
       "item_type": "security_camera",
       "use_cases": [
         "outdoor_security",
@@ -542,7 +657,7 @@
         "weather_resistance": "IP66"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ygkj-cYwL._AC_SL1000_.jpg"
   },
   {
     "id": "DEMO-CAMERA-NO-LOCAL",
@@ -581,6 +696,17 @@
       "schema_version": 1,
       "product_family": "outdoor_security_camera",
       "variant": "missing_mandatory_local_storage",
+      "bundling": {
+        "targets": [
+          "camera_storage",
+          "camera_mount"
+        ],
+        "compatibility_tags": [
+          "outdoor_security"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "security_camera",
       "use_cases": [
         "outdoor_security",
@@ -600,7 +726,7 @@
         "weather_resistance": "IP66"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ygkj-cYwL._AC_SL1000_.jpg"
   },
   {
     "id": "DEMO-CAMERA-INDOOR",
@@ -639,6 +765,17 @@
       "schema_version": 1,
       "product_family": "outdoor_security_camera",
       "variant": "missing_mandatory_outdoor_rating",
+      "bundling": {
+        "targets": [
+          "camera_storage",
+          "camera_mount"
+        ],
+        "compatibility_tags": [
+          "outdoor_security"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "security_camera",
       "use_cases": [
         "indoor_security",
@@ -658,7 +795,7 @@
         "weather_resistance": null
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ygkj-cYwL._AC_SL1000_.jpg"
   },
   {
     "id": "DEMO-CAMERA-NO-NIGHT",
@@ -697,6 +834,17 @@
       "schema_version": 1,
       "product_family": "outdoor_security_camera",
       "variant": "missing_mandatory_night_vision",
+      "bundling": {
+        "targets": [
+          "camera_storage",
+          "camera_mount"
+        ],
+        "compatibility_tags": [
+          "outdoor_security"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "security_camera",
       "use_cases": [
         "outdoor_security",
@@ -716,7 +864,7 @@
         "weather_resistance": "IP66"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ygkj-cYwL._AC_SL1000_.jpg"
   },
   {
     "id": "DEMO-WATCH-NO-PACE",
@@ -756,6 +904,17 @@
       "schema_version": 1,
       "product_family": "running_smartwatch",
       "variant": "gps_without_pace_tracking",
+      "bundling": {
+        "targets": [
+          "running_audio"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "smartwatch",
       "use_cases": [
         "location_tracking",
@@ -775,7 +934,7 @@
         "case_material": "stainless steel"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ajKKbi76L._AC_UL1000_.jpg"
   },
   {
     "id": "DEMO-WATCH-NOT-RUNNING",
@@ -815,6 +974,17 @@
       "schema_version": 1,
       "product_family": "running_smartwatch",
       "variant": "missing_mandatory_running_suitability",
+      "bundling": {
+        "targets": [
+          "running_audio"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "smartwatch",
       "use_cases": [
         "walking",
@@ -833,7 +1003,7 @@
         "case_material": "stainless steel"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ajKKbi76L._AC_UL1000_.jpg"
   },
   {
     "id": "DEMO-WATCH-FITNESS-BAND",
@@ -870,6 +1040,17 @@
       "schema_version": 1,
       "product_family": "running_smartwatch",
       "variant": "wrong_item_type_fitness_band",
+      "bundling": {
+        "targets": [
+          "running_audio"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "fitness_tracker",
       "use_cases": [
         "running",
@@ -887,7 +1068,7 @@
         "formal_suitable": false
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ajKKbi76L._AC_UL1000_.jpg"
   },
   {
     "id": "DEMO-WATCH-ANALOG",
@@ -924,6 +1105,17 @@
       "schema_version": 1,
       "product_family": "running_smartwatch",
       "variant": "wrong_item_type_analog_watch",
+      "bundling": {
+        "targets": [
+          "running_audio"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "analog_watch",
       "use_cases": [
         "formal_date",
@@ -941,7 +1133,7 @@
         "formal_suitable": true
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ajKKbi76L._AC_UL1000_.jpg"
   },
   {
     "id": "DEMO-BUDS-NO-FAST",
@@ -980,6 +1172,21 @@
       "schema_version": 1,
       "product_family": "running_wireless_earbuds",
       "variant": "missing_mandatory_fast_connection",
+      "bundling": {
+        "roles": [
+          "running_audio"
+        ],
+        "targets": [
+          "earbud_charging_case",
+          "portable_running_power"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "wireless_earbuds",
       "use_cases": [
         "running",
@@ -997,7 +1204,7 @@
         "secure_fit": true
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/6182myBMxuL._AC_SL1500_.jpg"
   },
   {
     "id": "DEMO-BUDS-LOOSE-FIT",
@@ -1036,6 +1243,21 @@
       "schema_version": 1,
       "product_family": "running_wireless_earbuds",
       "variant": "missing_mandatory_secure_fit",
+      "bundling": {
+        "roles": [
+          "running_audio"
+        ],
+        "targets": [
+          "earbud_charging_case",
+          "portable_running_power"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "wireless_earbuds",
       "use_cases": [
         "casual_listening"
@@ -1052,7 +1274,7 @@
         "secure_fit": false
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/6182myBMxuL._AC_SL1500_.jpg"
   },
   {
     "id": "DEMO-BUDS-HEADSET",
@@ -1090,6 +1312,21 @@
       "schema_version": 1,
       "product_family": "running_wireless_earbuds",
       "variant": "wrong_item_type_headset",
+      "bundling": {
+        "roles": [
+          "running_audio"
+        ],
+        "targets": [
+          "earbud_charging_case",
+          "portable_running_power"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "wireless_headset",
       "use_cases": [
         "office_calls"
@@ -1106,7 +1343,7 @@
         "secure_fit": false
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/6182myBMxuL._AC_SL1500_.jpg"
   },
   {
     "id": "DEMO-BUDS-WIRED",
@@ -1145,6 +1382,21 @@
       "schema_version": 1,
       "product_family": "running_wireless_earbuds",
       "variant": "wrong_connectivity_wired",
+      "bundling": {
+        "roles": [
+          "running_audio"
+        ],
+        "targets": [
+          "earbud_charging_case",
+          "portable_running_power"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "wired_earbuds",
       "use_cases": [
         "running",
@@ -1162,7 +1414,7 @@
         "secure_fit": true
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/6182myBMxuL._AC_SL1500_.jpg"
   },
   {
     "id": "DEMO-CAMERA-EXACT-1080",
@@ -1201,6 +1453,17 @@
       "schema_version": 1,
       "product_family": "outdoor_security_camera",
       "variant": "valid_lower_resolution_match",
+      "bundling": {
+        "targets": [
+          "camera_storage",
+          "camera_mount"
+        ],
+        "compatibility_tags": [
+          "outdoor_security"
+        ],
+        "offer_eligible": true,
+        "priority": 80
+      },
       "item_type": "security_camera",
       "use_cases": [
         "outdoor_security",
@@ -1220,7 +1483,7 @@
         "weather_resistance": "IP65"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ygkj-cYwL._AC_SL1000_.jpg"
   },
   {
     "id": "DEMO-CAMERA-NO-WEATHER",
@@ -1259,6 +1522,17 @@
       "schema_version": 1,
       "product_family": "outdoor_security_camera",
       "variant": "missing_mandatory_weather_resistance",
+      "bundling": {
+        "targets": [
+          "camera_storage",
+          "camera_mount"
+        ],
+        "compatibility_tags": [
+          "outdoor_security"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "security_camera",
       "use_cases": [
         "covered_porch_security",
@@ -1278,7 +1552,7 @@
         "weather_resistance": null
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ygkj-cYwL._AC_SL1000_.jpg"
   },
   {
     "id": "DEMO-CAMERA-DOORBELL",
@@ -1316,6 +1590,17 @@
       "schema_version": 1,
       "product_family": "outdoor_security_camera",
       "variant": "wrong_item_type_video_doorbell",
+      "bundling": {
+        "targets": [
+          "camera_storage",
+          "camera_mount"
+        ],
+        "compatibility_tags": [
+          "outdoor_security"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "video_doorbell",
       "use_cases": [
         "front_door_monitoring"
@@ -1334,7 +1619,7 @@
         "weather_resistance": "IP65"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ygkj-cYwL._AC_SL1000_.jpg"
   },
   {
     "id": "DEMO-CAMERA-MOUNT",
@@ -1373,6 +1658,17 @@
       "schema_version": 1,
       "product_family": "outdoor_security_camera",
       "variant": "wrong_item_type_accessory",
+      "bundling": {
+        "targets": [
+          "camera_storage",
+          "camera_mount"
+        ],
+        "compatibility_tags": [
+          "outdoor_security"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "camera_mount",
       "use_cases": [
         "camera_installation"
@@ -1391,6 +1687,235 @@
         "weather_resistance": "IP66"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/51ygkj-cYwL._AC_SL1000_.jpg"
+  },
+  {
+    "id": "DEMO-EARBUD-CASE",
+    "source": "Synthetic demo fixture derived from the Amazon catalog schema",
+    "main_category": "Electronics",
+    "category_path": [
+      "Electronics",
+      "Headphones, Earbuds & Accessories",
+      "Charging Cases"
+    ],
+    "catalog_group": "charging_connectivity",
+    "product_family": "earbud_charging_case",
+    "variant_key": "complementary_add_on",
+    "title": "Tempo PocketCharge Protective Earbud Charging Case",
+    "brand_or_store": "MatchProof Demo",
+    "price_usd": 35,
+    "average_rating": 4.5,
+    "rating_count": 120,
+    "features": [
+      "USB-C charging case designed for Tempo wireless earbuds.",
+      "Adds two full earbud recharges and protects the earbuds between runs.",
+      "Compact water-resistant shell fits a running belt or jacket pocket."
+    ],
+    "description": [
+      "Controlled earbud_charging_case demo fixture. Variant: complementary_add_on.",
+      "All retrieval-critical facts are stated explicitly in features and structured_attributes."
+    ],
+    "details": {
+      "ProductType": "Earbud charging case",
+      "Connector": "USB-C",
+      "CompatibleFamily": "Tempo"
+    },
+    "structured_attributes": {
+      "schema_version": 1,
+      "product_family": "earbud_charging_case",
+      "variant": "complementary_add_on",
+      "bundling": {
+        "roles": [
+          "earbud_charging_case"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": true,
+        "priority": 90
+      },
+      "item_type": "earbud_charging_case",
+      "use_cases": [
+        "running",
+        "casual_workout"
+      ],
+      "compatibility": {
+        "compatible_product_family": "running_wireless_earbuds"
+      }
+    },
+    "image_url": "https://m.media-amazon.com/images/I/81wW5sRA+jS._AC_SL1500_.jpg"
+  },
+  {
+    "id": "DEMO-RUN-POWER",
+    "source": "Synthetic demo fixture derived from the Amazon catalog schema",
+    "main_category": "Electronics",
+    "category_path": [
+      "Electronics",
+      "Portable Power",
+      "Power Banks"
+    ],
+    "catalog_group": "charging_connectivity",
+    "product_family": "portable_running_power_bank",
+    "variant_key": "complementary_add_on",
+    "title": "Tempo RunCharge Compact USB-C Power Bank",
+    "brand_or_store": "MatchProof Demo",
+    "price_usd": 29,
+    "average_rating": 4.5,
+    "rating_count": 120,
+    "features": [
+      "Lightweight 5,000mAh USB-C power bank for earbuds and phone charging on long runs.",
+      "Pocket-sized, sweat-resistant shell with USB-C fast charging output.",
+      "Includes a short USB-C cable for a compact workout kit."
+    ],
+    "description": [
+      "Controlled portable_running_power_bank demo fixture. Variant: complementary_add_on.",
+      "All retrieval-critical facts are stated explicitly in features and structured_attributes."
+    ],
+    "details": {
+      "Capacity": "5000mAh",
+      "Connector": "USB-C",
+      "FastCharging": true
+    },
+    "structured_attributes": {
+      "schema_version": 1,
+      "product_family": "portable_running_power_bank",
+      "variant": "complementary_add_on",
+      "bundling": {
+        "roles": [
+          "portable_running_power"
+        ],
+        "compatibility_tags": [
+          "running",
+          "casual_workout"
+        ],
+        "offer_eligible": true,
+        "priority": 90
+      },
+      "item_type": "portable_power_bank",
+      "use_cases": [
+        "running",
+        "casual_workout",
+        "travel"
+      ],
+      "charging": {
+        "connector": "USB-C",
+        "fast_charging": true
+      }
+    },
+    "image_url": "https://m.media-amazon.com/images/I/81hAcNitfKL._AC_SL1500_.jpg"
+  },
+  {
+    "id": "DEMO-CAMERA-MICROSD",
+    "source": "Synthetic demo fixture derived from the Amazon catalog schema",
+    "main_category": "Electronics",
+    "category_path": [
+      "Electronics",
+      "Camera & Photo",
+      "Memory Cards"
+    ],
+    "catalog_group": "storage",
+    "product_family": "camera_micro_sd",
+    "variant_key": "complementary_add_on",
+    "title": "Sentinel Endurance 256GB microSD Card for Security Cameras",
+    "brand_or_store": "MatchProof Demo",
+    "price_usd": 32,
+    "average_rating": 4.5,
+    "rating_count": 120,
+    "features": [
+      "256GB high-endurance microSD card for continuous local security-camera recording.",
+      "Rated for outdoor temperature changes and repeated overwriting.",
+      "Compatible with Sentinel cameras that support local microSD storage."
+    ],
+    "description": [
+      "Controlled camera_micro_sd demo fixture. Variant: complementary_add_on.",
+      "All retrieval-critical facts are stated explicitly in features and structured_attributes."
+    ],
+    "details": {
+      "Capacity": "256GB",
+      "CardType": "microSD",
+      "IntendedUse": "continuous security recording"
+    },
+    "structured_attributes": {
+      "schema_version": 1,
+      "product_family": "camera_micro_sd",
+      "variant": "complementary_add_on",
+      "bundling": {
+        "roles": [
+          "camera_storage"
+        ],
+        "compatibility_tags": [
+          "outdoor_security"
+        ],
+        "offer_eligible": true,
+        "priority": 90
+      },
+      "item_type": "micro_sd_card",
+      "use_cases": [
+        "outdoor_security",
+        "local_camera_storage"
+      ],
+      "compatibility": {
+        "compatible_product_family": "outdoor_security_camera"
+      }
+    },
+    "image_url": "https://m.media-amazon.com/images/I/61jajvgWBzL._AC_SL1000_.jpg"
+  },
+  {
+    "id": "DEMO-CAMERA-MOUNT-ADDON",
+    "source": "Synthetic demo fixture derived from the Amazon catalog schema",
+    "main_category": "Electronics",
+    "category_path": [
+      "Electronics",
+      "Camera & Photo",
+      "Video Surveillance",
+      "Mounts"
+    ],
+    "catalog_group": "camera_accessories",
+    "product_family": "camera_mount",
+    "variant_key": "complementary_add_on",
+    "title": "Sentinel Adjustable Outdoor Security Camera Mount",
+    "brand_or_store": "MatchProof Demo",
+    "price_usd": 24,
+    "average_rating": 4.5,
+    "rating_count": 120,
+    "features": [
+      "Weatherproof adjustable wall mount for Sentinel outdoor security cameras.",
+      "Allows a clear angle for driveway, porch, or side-gate monitoring.",
+      "Camera sold separately; compatible with Sentinel outdoor camera housings."
+    ],
+    "description": [
+      "Controlled camera_mount demo fixture. Variant: complementary_add_on.",
+      "All retrieval-critical facts are stated explicitly in features and structured_attributes."
+    ],
+    "details": {
+      "ProductType": "Security camera mount",
+      "WeatherResistance": "IP66",
+      "CompatibleFamily": "Sentinel"
+    },
+    "structured_attributes": {
+      "schema_version": 1,
+      "product_family": "camera_mount",
+      "variant": "complementary_add_on",
+      "bundling": {
+        "roles": [
+          "camera_mount"
+        ],
+        "compatibility_tags": [
+          "outdoor_security"
+        ],
+        "offer_eligible": true,
+        "priority": 90
+      },
+      "item_type": "security_camera_mount",
+      "use_cases": [
+        "outdoor_security",
+        "camera_installation"
+      ],
+      "compatibility": {
+        "compatible_product_family": "outdoor_security_camera"
+      }
+    },
+    "image_url": "https://m.media-amazon.com/images/I/314+6fI-J5L._AC_.jpg"
   }
 ]

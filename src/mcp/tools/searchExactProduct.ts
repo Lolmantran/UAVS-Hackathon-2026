@@ -21,7 +21,9 @@ export function registerSearchExactProduct(server: McpServer): void {
         "image (e.g. 'ANC earbuds, good sound, black, under $200'). Returns ranked, justified " +
         "matches plus a few secondary near-misses. Each result includes source-backed price, image " +
         "references, availability flags, and full catalog metadata. Supply any image as image_path " +
-        "or image_url; a clarification question is returned only when the request is underspecified.",
+        "or image_url; a clarification question is returned only when the request is underspecified. " +
+        "When automatic_bundle_offer is present, include it directly below the primary recommendation " +
+        "in the buyer-facing reply; do not require the buyer to ask for a bundle separately.",
       inputSchema: {
         query: z.string().min(1).describe("Buyer's natural-language shopping request"),
         ...IMAGE_INPUT_SCHEMA,

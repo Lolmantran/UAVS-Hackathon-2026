@@ -40,6 +40,18 @@
       "schema_version": 1,
       "product_family": "oily_skin_cleanser",
       "variant": "exact_match",
+      "bundling": {
+        "targets": [
+          "post_cleanse_toner",
+          "lightweight_moisturizer"
+        ],
+        "compatibility_tags": [
+          "oily",
+          "acne_prone"
+        ],
+        "offer_eligible": true,
+        "priority": 100
+      },
       "item_type": "facial_cleanser",
       "use_cases": [
         "daily_cleansing"
@@ -60,7 +72,7 @@
         "texture": "gel"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/71n%2BJv2f1aL._SL1500_.jpg"
   },
   {
     "id": "DEMO-CLEANSER-FRAGRANCED",
@@ -103,6 +115,18 @@
       "schema_version": 1,
       "product_family": "oily_skin_cleanser",
       "variant": "missing_preferred_fragrance_free",
+      "bundling": {
+        "targets": [
+          "post_cleanse_toner",
+          "lightweight_moisturizer"
+        ],
+        "compatibility_tags": [
+          "oily",
+          "acne_prone"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "facial_cleanser",
       "use_cases": [
         "daily_cleansing"
@@ -123,7 +147,7 @@
         "texture": "gel"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/71n%2BJv2f1aL._SL1500_.jpg"
   },
   {
     "id": "DEMO-CLEANSER-DRY-SKIN",
@@ -165,6 +189,18 @@
       "schema_version": 1,
       "product_family": "oily_skin_cleanser",
       "variant": "missing_mandatory_skin_type",
+      "bundling": {
+        "targets": [
+          "post_cleanse_toner",
+          "lightweight_moisturizer"
+        ],
+        "compatibility_tags": [
+          "oily",
+          "acne_prone"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "facial_cleanser",
       "use_cases": [
         "daily_cleansing"
@@ -184,7 +220,7 @@
         "texture": "cream"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/71n%2BJv2f1aL._SL1500_.jpg"
   },
   {
     "id": "DEMO-CLEANSER-OVER-BUDGET",
@@ -227,6 +263,18 @@
       "schema_version": 1,
       "product_family": "oily_skin_cleanser",
       "variant": "missing_mandatory_budget",
+      "bundling": {
+        "targets": [
+          "post_cleanse_toner",
+          "lightweight_moisturizer"
+        ],
+        "compatibility_tags": [
+          "oily",
+          "acne_prone"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "facial_cleanser",
       "use_cases": [
         "daily_cleansing"
@@ -247,7 +295,7 @@
         "texture": "gel"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/71n%2BJv2f1aL._SL1500_.jpg"
   },
   {
     "id": "DEMO-CLEANSER-EXACT-FOAM",
@@ -290,6 +338,18 @@
       "schema_version": 1,
       "product_family": "oily_skin_cleanser",
       "variant": "valid_foaming_match",
+      "bundling": {
+        "targets": [
+          "post_cleanse_toner",
+          "lightweight_moisturizer"
+        ],
+        "compatibility_tags": [
+          "oily",
+          "acne_prone"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "facial_cleanser",
       "use_cases": [
         "daily_cleansing"
@@ -310,7 +370,7 @@
         "texture": "foam"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/71n%2BJv2f1aL._SL1500_.jpg"
   },
   {
     "id": "DEMO-CLEANSER-COMEDOGENIC",
@@ -353,6 +413,18 @@
       "schema_version": 1,
       "product_family": "oily_skin_cleanser",
       "variant": "missing_preferred_non_comedogenic",
+      "bundling": {
+        "targets": [
+          "post_cleanse_toner",
+          "lightweight_moisturizer"
+        ],
+        "compatibility_tags": [
+          "oily",
+          "acne_prone"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "facial_cleanser",
       "use_cases": [
         "makeup_removal"
@@ -372,7 +444,7 @@
         "texture": "oil"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/71n%2BJv2f1aL._SL1500_.jpg"
   },
   {
     "id": "DEMO-CLEANSER-BODY-WASH",
@@ -413,6 +485,18 @@
       "schema_version": 1,
       "product_family": "oily_skin_cleanser",
       "variant": "wrong_item_type_body_wash",
+      "bundling": {
+        "targets": [
+          "post_cleanse_toner",
+          "lightweight_moisturizer"
+        ],
+        "compatibility_tags": [
+          "oily",
+          "acne_prone"
+        ],
+        "offer_eligible": false,
+        "priority": 90
+      },
       "item_type": "body_wash",
       "use_cases": [
         "body_cleansing"
@@ -431,7 +515,7 @@
         "texture": "gel"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/71n%2BJv2f1aL._SL1500_.jpg"
   },
   {
     "id": "DEMO-CLEANSER-TONER",
@@ -474,6 +558,20 @@
       "schema_version": 1,
       "product_family": "oily_skin_cleanser",
       "variant": "wrong_item_type_toner",
+      "bundling": {
+        "roles": [
+          "post_cleanse_toner"
+        ],
+        "targets": [
+          "lightweight_moisturizer"
+        ],
+        "compatibility_tags": [
+          "oily",
+          "acne_prone"
+        ],
+        "offer_eligible": true,
+        "priority": 100
+      },
       "item_type": "facial_toner",
       "use_cases": [
         "post_cleansing_toner"
@@ -494,6 +592,80 @@
         "texture": "liquid"
       }
     },
-    "image_url": null
+    "image_url": "https://m.media-amazon.com/images/I/71n%2BJv2f1aL._SL1500_.jpg"
+  },
+  {
+    "id": "DEMO-MOISTURIZER-OILY",
+    "source": "Synthetic demo fixture derived from the Amazon catalog schema",
+    "main_category": "Beauty & Personal Care",
+    "category_path": [
+      "Beauty & Personal Care",
+      "Skin Care",
+      "Face",
+      "Moisturizers"
+    ],
+    "catalog_group": "moisturizer",
+    "product_family": "oily_skin_moisturizer",
+    "variant_key": "complementary_add_on",
+    "title": "ClearKind Lightweight Gel Moisturizer for Oily Skin",
+    "brand_or_store": "MatchProof Demo",
+    "price_usd": 21,
+    "average_rating": 4.5,
+    "rating_count": 120,
+    "features": [
+      "Lightweight fragrance-free gel moisturizer for oily and acne-prone skin.",
+      "Non-comedogenic hydration with niacinamide and ceramides after cleansing or toner.",
+      "Absorbs quickly without a greasy finish for everyday routine use."
+    ],
+    "description": [
+      "Controlled oily_skin_moisturizer demo fixture. Variant: complementary_add_on.",
+      "All retrieval-critical facts are stated explicitly in features and structured_attributes."
+    ],
+    "details": {
+      "SkinType": [
+        "Oily",
+        "Acne-prone"
+      ],
+      "Form": "Gel",
+      "Fragrance": "Fragrance-free",
+      "VolumeMl": 60
+    },
+    "structured_attributes": {
+      "schema_version": 1,
+      "product_family": "oily_skin_moisturizer",
+      "variant": "complementary_add_on",
+      "bundling": {
+        "roles": [
+          "lightweight_moisturizer"
+        ],
+        "compatibility_tags": [
+          "oily",
+          "acne_prone"
+        ],
+        "offer_eligible": true,
+        "priority": 90
+      },
+      "item_type": "facial_moisturizer",
+      "use_cases": [
+        "daily_moisturizing",
+        "post_cleansing"
+      ],
+      "skin": {
+        "suitable_skin_types": [
+          "oily",
+          "acne_prone"
+        ],
+        "concerns": [
+          "hydration",
+          "barrier_support"
+        ]
+      },
+      "formula": {
+        "fragrance_free": true,
+        "non_comedogenic": true,
+        "texture": "gel"
+      }
+    },
+    "image_url": "https://m.media-amazon.com/images/I/71F7VzOU-gL._SL1500_.jpg"
   }
 ]

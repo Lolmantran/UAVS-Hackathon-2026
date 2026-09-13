@@ -71,9 +71,37 @@ function formatProductLine(product: ProductResultForText): string {
   return `- ${product.title} (${product.productId}) — price: ${formatPrice(product.priceUsd)}; image: ${image}`;
 }
 
+function toBuyerFacingBundleOffer(result: SearchToolResult):
+  | {
+      heading: string;
+      message: string;
+      anchorProductId: string;
+      bundleProductIds: string[];
+      proposedTotalUsd: number;
+      savingsUsd: number;
+    }
+  | undefined {
+  if (!result.automaticBundleSuggestion) return undefined;
+  const bundle = toBundleResponse(result.automaticBundleSuggestion);
+  if (bundle.bundleItems.length === 0) return undefined;
+
+  return {
+    heading: "Automatic bundle offer",
+    message:
+      `Complete the set: add ${bundle.bundleItems.map((item) => item.title).join(" + ")} to ` +
+      `"${bundle.anchor.title}" for $${bundle.proposal.proposedTotalUsd} USD ` +
+      `(save $${bundle.proposal.savingsUsd}).`,
+    anchorProductId: bundle.anchor.productId,
+    bundleProductIds: bundle.bundleItems.map((item) => item.productId),
+    proposedTotalUsd: bundle.proposal.proposedTotalUsd,
+    savingsUsd: bundle.proposal.savingsUsd,
+  };
+}
+
 function formatSearchText(result: SearchToolResult): string {
   const ranked = result.rankedResults ?? [];
   const secondary = result.secondaryResults ?? [];
+  const bundleOffer = toBuyerFacingBundleOffer(result);
   const lines = [
     `session_id: ${result.sessionId} — ${ranked.length} matching product(s), ${secondary.length} secondary/near-miss product(s).`,
   ];
@@ -81,15 +109,13 @@ function formatSearchText(result: SearchToolResult): string {
   if (ranked.length > 0) {
     lines.push("Matching product metadata:", ...ranked.map(formatProductLine));
   }
+  if (bundleOffer) {
+    // This lives immediately after primary matches so a chat agent sees it as part of the
+    // recommendation, not optional diagnostic metadata appended after near-misses.
+    lines.push(`${bundleOffer.heading} — include in the buyer-facing reply:`, bundleOffer.message);
+  }
   if (secondary.length > 0) {
     lines.push("Secondary product metadata:", ...secondary.map(formatProductLine));
-  }
-  if (result.automaticBundleSuggestion) {
-    const bundle = toBundleResponse(result.automaticBundleSuggestion);
-    lines.push(
-      `Suggested bundle: add ${bundle.bundleItems.map((item) => item.title).join(" + ")} to "${bundle.anchor.title}" ` +
-        `for $${bundle.proposal.proposedTotalUsd} USD (save $${bundle.proposal.savingsUsd}).`,
-    );
   }
   lines.push("Each structured result also includes catalogMetadata and explicit availability flags.");
   return lines.join("\n");
@@ -117,6 +143,8 @@ export function searchResultToCallToolResult(result: SearchToolResult): CallTool
     };
   }
 
+  const bundleOffer = toBuyerFacingBundleOffer(result);
+
   return {
     content: [
       {
@@ -129,6 +157,7 @@ export function searchResultToCallToolResult(result: SearchToolResult): CallTool
       session_id: result.sessionId,
       ranked_results: result.rankedResults ?? [],
       secondary_results: result.secondaryResults ?? [],
+      ...(bundleOffer ? { automatic_bundle_offer: bundleOffer } : {}),
       ...(result.automaticBundleSuggestion
         ? { automatic_bundle_suggestion: toBundleResponse(result.automaticBundleSuggestion) }
         : {}),

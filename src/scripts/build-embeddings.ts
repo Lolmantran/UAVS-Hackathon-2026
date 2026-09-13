@@ -4,6 +4,7 @@
 // per product (text + image together, gemini-embedding-2 is natively multimodal). Safe to
 // interrupt and re-run (e.g. after swapping to a fresh free-tier API key) — already-embedded
 // products are skipped, so no quota is wasted redoing them.
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { loadCatalogByCategory } from "../catalog/loader.js";
 import { generateEmbedding } from "../embedding/gemini.js";
@@ -26,9 +27,13 @@ async function embedProduct(product: import("../types/catalog.js").Product): Pro
   // round-trip.
   const image = product.imageUrl
     ? { imageUrl: product.imageUrl }
-    : product.imagePath
+    : product.imagePath && existsSync(path.resolve(product.imagePath))
       ? { imagePath: product.imagePath }
       : undefined;
+
+  if (!image && product.imagePath) {
+    console.warn(`  [warn] local image missing for ${product.id}; embedding text only`);
+  }
 
   try {
     return await generateEmbedding({ text: product.embeddingText, image }, logCooldown);

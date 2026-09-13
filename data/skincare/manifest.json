@@ -1,12 +1,14 @@
 {
   "source": "Synthetic demo fixtures",
-  "items": 8,
+  "items": 9,
   "groups": {
     "cleanser": 7,
-    "toner_essence": 1
+    "toner_essence": 1,
+    "moisturizer": 1
   },
   "product_families": [
-    "oily_skin_cleanser"
+    "oily_skin_cleanser",
+    "oily_skin_moisturizer"
   ],
   "schema_version": 1,
   "notes": "Controlled near-neighbour variants for deterministic retrieval demonstrations. Clothing is maintained separately and untouched."

@@ -1,15 +1,22 @@
 {
   "source": "Synthetic demo fixtures",
-  "items": 24,
+  "items": 28,
   "groups": {
     "mobile_accessories": 8,
     "audio": 8,
-    "camera_smart_home": 8
+    "camera_smart_home": 8,
+    "charging_connectivity": 2,
+    "storage": 1,
+    "camera_accessories": 1
   },
   "product_families": [
     "running_smartwatch",
     "running_wireless_earbuds",
-    "outdoor_security_camera"
+    "outdoor_security_camera",
+    "earbud_charging_case",
+    "portable_running_power_bank",
+    "camera_micro_sd",
+    "camera_mount"
   ],
   "schema_version": 1,
   "notes": "Controlled near-neighbour variants for deterministic retrieval demonstrations. Clothing is maintained separately and untouched."
