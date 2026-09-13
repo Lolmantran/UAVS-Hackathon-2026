@@ -1,17 +1,36 @@
 # data/
 
-30 product images + metadata sampled from the H&M Personalized Fashion
-Recommendations Kaggle competition.
+The demo loads two deliberately different data layers:
+
+- **30 unchanged H&M clothing records** for visual matching and bundle recommendations.
+- **32 controlled synthetic non-clothing records** for explainable retrieval tests.
+
+The synthetic layer contains eight near-neighbour variants in each family: running smartwatches,
+running wireless earbuds, outdoor security cameras, and oily-skin facial cleansers. Each family
+ranges from exact matches through single-attribute misses to clearly wrong item types.
 
 ## Layout
 
 | Path | Committed? | What |
 |---|---|---|
-| `catalog/manifest.json` | yes | The chosen `article_id`s, for reproducibility |
-| `catalog/products.json` | yes | Full metadata per image |
-| `catalog/labels.csv` | yes | Flat `image_file` -> label table for training |
+| `clothing/manifest.json` | yes | The chosen H&M `article_id`s, for reproducibility |
+| `clothing/products.json` | yes | Full H&M metadata; intentionally unchanged by the demo-catalog builder |
+| `clothing/labels.csv` | yes | Flat clothing `image_file` → label table |
 | `images/*.jpg` | yes | The 30 images, 11MB |
 | `raw/articles.csv` | **no** | Source metadata, ~36MB, rebuild from Kaggle |
+| `electronics/electronics_catalog.json` | yes | 24 controlled fixtures: eight watches, eight earbuds, eight cameras |
+| `skincare/skincare_catalog.json` | yes | Eight controlled cleanser fixtures |
+| `home-goods/homegoods_catalog.json` | yes | Empty in the focused demo catalog |
+
+## Rebuilding the controlled demo catalog
+
+```bash
+npm run build:demo-catalog
+```
+
+This rewrites only `electronics/`, `skincare/`, and `home-goods/`. It does not read or write
+`clothing/` or `images/`. Synthetic records are clearly marked in their `source` field and carry a
+`structured_attributes` object alongside explicit positive and negative feature statements.
 
 ## Getting the data
 
@@ -20,7 +39,7 @@ pip install kaggle
 python scripts/fetch_hm_sample.py
 ```
 
-Downloads ~40MB and takes about a minute -- not the 35GB full competition.
+Downloads ~40MB and takes about a minute—not the 35GB full competition.
 
 - `--manifest` rebuilds the exact same set (use this so everyone on the team
   trains on identical images).
@@ -35,7 +54,7 @@ to competition / academic / non-commercial use -- review them before reusing
 this repo for anything else:
 https://www.kaggle.com/competitions/h-and-m-personalized-fashion-recommendations/rules
 
-`catalog/manifest.json` + `scripts/fetch_hm_sample.py` reproduce the exact
+`clothing/manifest.json` + `scripts/fetch_hm_sample.py` reproduce the exact
 same set from any Kaggle account, so the images can be dropped from version
 control later if redistribution becomes a concern.
 

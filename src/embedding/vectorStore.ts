@@ -48,6 +48,27 @@ export function hasEmbedding(store: VectorStore, productId: string): boolean {
   return row !== undefined;
 }
 
+/** Remove vectors for products no longer present in the active catalog. */
+export function pruneEmbeddings(store: VectorStore, activeProductIds: Set<string>): number {
+  const rows = store.db.prepare("select rowid, product_id as productId from product_map").all() as Array<{
+    rowid: number;
+    productId: string;
+  }>;
+  const stale = rows.filter((row) => !activeProductIds.has(row.productId));
+  if (stale.length === 0) return 0;
+
+  const remove = store.db.transaction((records: typeof stale) => {
+    const deleteVector = store.db.prepare("delete from vec_products where rowid = ?");
+    const deleteMapping = store.db.prepare("delete from product_map where rowid = ?");
+    for (const record of records) {
+      deleteVector.run(BigInt(record.rowid));
+      deleteMapping.run(record.rowid);
+    }
+  });
+  remove(stale);
+  return stale.length;
+}
+
 export function upsertEmbedding(store: VectorStore, productId: string, embedding: number[]): void {
   if (embedding.length !== store.dimension) {
     throw new Error(

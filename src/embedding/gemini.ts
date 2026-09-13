@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { env } from "../config/env.js";
 import { MODEL_CONFIG } from "../config/model.js";
-import { throttleGenerateContent } from "../config/rateLimit.js";
+import { throttleEmbedding, throttleGenerateContent } from "../config/rateLimit.js";
 
 const EXT_MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -23,6 +23,7 @@ function getClient(): GoogleGenAI {
 }
 
 export async function generateTextEmbedding(text: string): Promise<number[]> {
+  await throttleEmbedding();
   const response = await getClient().models.embedContent({
     model: MODEL_CONFIG.embedding,
     contents: text,

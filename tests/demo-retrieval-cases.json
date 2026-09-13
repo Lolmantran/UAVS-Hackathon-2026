@@ -1,0 +1,77 @@
+{
+  "catalogProfile": "controlled-demo-v2",
+  "notes": [
+    "All four non-clothing product families contain eight controlled variants ranging from exact matches to wrong item types.",
+    "Mandatory-attribute failures must appear only in secondary results.",
+    "Clothing records are the unchanged H&M sample and are used for bundle demonstrations."
+  ],
+  "cases": [
+    {
+      "id": "running-smartwatch",
+      "category": "electronics",
+      "query": "Find me a smart watch for running with built-in GPS pace tracking and heart-rate tracking that also looks suitable for formal dates.",
+      "expectedRankedInOrder": ["DEMO-WATCH-EXACT", "DEMO-WATCH-SPORT"],
+      "expectedSecondary": [
+        "DEMO-WATCH-NO-GPS",
+        "DEMO-WATCH-NO-HR",
+        "DEMO-WATCH-NO-PACE",
+        "DEMO-WATCH-NOT-RUNNING",
+        "DEMO-WATCH-FITNESS-BAND",
+        "DEMO-WATCH-ANALOG"
+      ]
+    },
+    {
+      "id": "running-wireless-earbuds",
+      "category": "electronics",
+      "query": "Find wireless earbuds with fast connection and multipoint multi-device support for casual workouts and running.",
+      "expectedRankedInOrder": ["DEMO-BUDS-EXACT"],
+      "expectedSecondary": [
+        "DEMO-BUDS-NO-MULTIPOINT",
+        "DEMO-BUDS-NO-WORKOUT",
+        "DEMO-BUDS-LEGACY",
+        "DEMO-BUDS-NO-FAST",
+        "DEMO-BUDS-LOOSE-FIT",
+        "DEMO-BUDS-HEADSET",
+        "DEMO-BUDS-WIRED"
+      ]
+    },
+    {
+      "id": "outdoor-security-camera",
+      "category": "electronics",
+      "query": "Find an outdoor security camera with night vision, local storage, and weather resistance.",
+      "expectedRankedInOrder": ["DEMO-CAMERA-EXACT", "DEMO-CAMERA-EXACT-1080"],
+      "expectedSecondary": [
+        "DEMO-CAMERA-NO-LOCAL",
+        "DEMO-CAMERA-INDOOR",
+        "DEMO-CAMERA-NO-NIGHT",
+        "DEMO-CAMERA-NO-WEATHER",
+        "DEMO-CAMERA-DOORBELL",
+        "DEMO-CAMERA-MOUNT"
+      ]
+    },
+    {
+      "id": "oily-skin-cleanser",
+      "category": "skincare",
+      "query": "Find a facial cleanser for oily acne-prone skin under $25, preferably fragrance-free.",
+      "expectedRankedInOrder": [
+        "DEMO-CLEANSER-EXACT",
+        "DEMO-CLEANSER-EXACT-FOAM",
+        "DEMO-CLEANSER-FRAGRANCED"
+      ],
+      "expectedSecondary": [
+        "DEMO-CLEANSER-DRY-SKIN",
+        "DEMO-CLEANSER-OVER-BUDGET",
+        "DEMO-CLEANSER-COMEDOGENIC",
+        "DEMO-CLEANSER-BODY-WASH",
+        "DEMO-CLEANSER-TONER"
+      ]
+    },
+    {
+      "id": "clothing-bundle",
+      "tool": "get_bundle_suggestions",
+      "anchorProductId": "0599102001",
+      "expectedSuggestionCount": 2,
+      "expectedCategory": "clothing"
+    }
+  ]
+}

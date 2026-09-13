@@ -4,7 +4,8 @@
   "description": "Merchant-side agentic commerce MCP server",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:demo-catalog": "node scripts/build_demo_catalog.mjs",
+    "test": "tsx src/scripts/test-demo-catalog.ts && tsc --noEmit"
   },
   "keywords": [],
   "author": "",

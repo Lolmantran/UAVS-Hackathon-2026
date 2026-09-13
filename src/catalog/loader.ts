@@ -33,7 +33,29 @@ interface AmazonRecord {
   features: string[];
   description: string[];
   details: Record<string, unknown>;
-  image_url: string;
+  image_url: string | null;
+  /** Present on the controlled demo fixtures; omitted on legacy source records. */
+  product_family?: string;
+  variant_key?: string;
+  structured_attributes?: Record<string, unknown>;
+}
+
+function structuredAttributesText(value: unknown, prefix = ""): string[] {
+  if (value === null || value === undefined) return [];
+  if (Array.isArray(value)) {
+    return [`${prefix}: ${value.join(", ")}`];
+  }
+  if (typeof value !== "object") {
+    if (typeof value === "boolean") {
+      const label = prefix.replaceAll("_", " ");
+      return [value ? label : `no ${label}`];
+    }
+    return [`${prefix.replaceAll("_", " ")}: ${String(value)}`];
+  }
+
+  return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) =>
+    structuredAttributesText(child, prefix ? `${prefix}.${key}` : key),
+  );
 }
 
 function loadJson<T>(relativePath: string): T {
@@ -77,14 +99,20 @@ function loadAmazonCategory(category: ProductCategory, fileName: string): Produc
     const detailsText = Object.entries(r.details ?? {})
       .map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`)
       .join("; ");
+    const structuredText = structuredAttributesText(r.structured_attributes)
+      .map((fact) => `Structured attribute: ${fact}`)
+      .join(". ");
 
     const embeddingText = [
       r.title,
       r.category_path?.join(" > "),
       r.catalog_group,
+      r.product_family,
+      r.variant_key,
       ...(r.features ?? []),
       ...(r.description ?? []),
       detailsText,
+      structuredText,
     ]
       .filter(Boolean)
       .join(". ");
