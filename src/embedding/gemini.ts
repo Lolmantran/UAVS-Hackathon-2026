@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { env } from "../config/env.js";
 import { MODEL_CONFIG } from "../config/model.js";
+import { throttleEmbedding } from "../config/rateLimit.js";
 
 const EXT_MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -47,6 +48,7 @@ export async function generateEmbedding(input: EmbedInput): Promise<number[]> {
     throw new Error("generateEmbedding requires at least one of text or image");
   }
 
+  await throttleEmbedding();
   const response = await getClient().models.embedContent({
     model: MODEL_CONFIG.embedding,
     contents: parts,

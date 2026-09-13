@@ -7,14 +7,14 @@
 import path from "node:path";
 import { loadCatalogByCategory } from "../catalog/loader.js";
 import { generateEmbedding } from "../embedding/gemini.js";
-import { hasEmbedding, openVectorStore, upsertEmbedding } from "../embedding/vectorStore.js";
+import { hasEmbedding, openVectorStore, pruneEmbeddings, upsertEmbedding } from "../embedding/vectorStore.js";
 
 const DB_PATH = path.resolve(process.cwd(), "var/catalog.vec.sqlite");
 
 // Each product needs 1-2 sequential Gemini calls (caption + embed), and each call has multi-second
 // latency — running products in bounded-concurrency batches instead of one at a time cuts total
 // build time roughly by CONCURRENCY without bursting past free-tier per-minute rate limits.
-const CONCURRENCY = 5;
+const CONCURRENCY = 1;
 
 async function embedProduct(product: import("../types/catalog.js").Product): Promise<number[] | null> {
   // A remote imageUrl (electronics/skincare/home-goods) or a local imagePath (clothing) goes
@@ -39,6 +39,9 @@ async function embedProduct(product: import("../types/catalog.js").Product): Pro
 async function main() {
   const byCategory = loadCatalogByCategory();
   const store = openVectorStore(DB_PATH);
+  const activeIds = new Set(Object.values(byCategory).flat().map((product) => product.id));
+  const pruned = pruneEmbeddings(store, activeIds);
+  if (pruned > 0) console.log(`Pruned ${pruned} stale embedding(s)`);
 
   for (const [category, products] of Object.entries(byCategory)) {
     let done = 0;

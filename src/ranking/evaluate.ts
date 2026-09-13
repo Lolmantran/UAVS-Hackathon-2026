@@ -45,6 +45,103 @@ export function buildCorpus(product: Product): string {
     .toLowerCase();
 }
 
+function structuredValue(product: Product, path: string): unknown {
+  let value: unknown = product.attributes.structured_attributes;
+  for (const part of path.split(".")) {
+    if (!value || typeof value !== "object") return undefined;
+    value = (value as Record<string, unknown>)[part];
+  }
+  return value;
+}
+
+function evaluateStructuredCriterion(criterion: Criterion, product: Product): CriterionEvaluation | null {
+  if (!product.attributes.structured_attributes) return null;
+  const text = `${criterion.attribute} ${criterion.description} ${criterion.rawPhrase}`.toLowerCase();
+
+  if (criterion.attribute === "item_type") {
+    const actual = structuredValue(product, "item_type");
+    if (typeof actual !== "string") return null;
+    const expectedTokens = (criterion.description.toLowerCase().match(/[a-z]+/g) ?? [])
+      .filter((token) => token.length >= 3 && !STOPWORDS.has(token) && token !== "item" && token !== "type");
+    const normalizedActual = actual.toLowerCase().replaceAll("_", " ");
+    const satisfied = expectedTokens.every((token) => normalizedActual.includes(token));
+    return {
+      criterion,
+      outcome: satisfied ? "satisfied" : "violated",
+      evidence: `structured item_type is "${actual}"`,
+    };
+  }
+
+  const booleanRule = (path: string): CriterionEvaluation | null => {
+    const value = structuredValue(product, path);
+    if (typeof value !== "boolean") return null;
+    return {
+      criterion,
+      outcome: value ? "satisfied" : "violated",
+      evidence: `structured ${path} is ${value}`,
+    };
+  };
+
+  if (/gps/.test(text) && /pace/.test(text)) return booleanRule("fitness.gps_pace_tracking");
+  if (/heart[\s_-]*(?:rate|beat)/.test(text)) return booleanRule("fitness.continuous_heart_rate_tracking");
+  if (/formal|dress occasion|date night/.test(text)) return booleanRule("style.formal_suitable");
+  if (/fast/.test(text) && /connect|pair|reconnect/.test(text)) return booleanRule("connectivity.fast_pairing");
+  if (/multipoint|multi[\s_-]*device|multiple devices/.test(text)) return booleanRule("connectivity.multipoint");
+  if (/night[\s_-]*vision/.test(text)) return booleanRule("imaging.night_vision");
+  if (/local[\s_-]*storage/.test(text)) return booleanRule("storage.local_storage");
+  if (/fragrance[\s_-]*free|without fragrance/.test(text)) return booleanRule("formula.fragrance_free");
+
+  if (/(running|workout)/.test(text) && /(suitable|secure|fit|sweat)/.test(text)) {
+    const itemType = structuredValue(product, "item_type");
+    if (itemType === "smartwatch" || itemType === "fitness_tracker") {
+      return booleanRule("workout.running_suitable");
+    }
+    if (itemType === "wireless_earbuds" || itemType === "wired_earbuds" || itemType === "wireless_headset") {
+      const secure = structuredValue(product, "workout.secure_fit");
+      const sweat = structuredValue(product, "workout.sweat_resistant");
+      if (typeof secure === "boolean" && typeof sweat === "boolean") {
+        const satisfied = secure && sweat;
+        return {
+          criterion,
+          outcome: satisfied ? "satisfied" : "violated",
+          evidence: `structured workout.secure_fit is ${secure}; workout.sweat_resistant is ${sweat}`,
+        };
+      }
+    }
+  }
+
+  if (/weather|outdoor/.test(text) && /resistan|suitable|install/.test(text)) {
+    const outdoor = structuredValue(product, "installation.outdoor_suitable");
+    const weather = structuredValue(product, "installation.weather_resistance");
+    if (typeof outdoor === "boolean") {
+      const satisfied = outdoor && typeof weather === "string" && weather.length > 0;
+      return {
+        criterion,
+        outcome: satisfied ? "satisfied" : "violated",
+        evidence: `structured outdoor_suitable is ${outdoor}; weather_resistance is ${String(weather)}`,
+      };
+    }
+  }
+
+  if (/oily|acne/.test(text)) {
+    const skinTypes = structuredValue(product, "skin.suitable_skin_types");
+    if (Array.isArray(skinTypes)) {
+      const normalized = skinTypes.map((value) => String(value).toLowerCase());
+      const requiresOily = /oily/.test(text);
+      const requiresAcne = /acne/.test(text);
+      const satisfied = (!requiresOily || normalized.includes("oily")) &&
+        (!requiresAcne || normalized.includes("acne_prone"));
+      return {
+        criterion,
+        outcome: satisfied ? "satisfied" : "violated",
+        evidence: `structured suitable_skin_types are ${normalized.join(", ")}`,
+      };
+    }
+  }
+
+  return null;
+}
+
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -263,6 +360,9 @@ function evaluateTextual(criterion: Criterion, product: Product): CriterionEvalu
 }
 
 export function evaluateCriterion(criterion: Criterion, product: Product): CriterionEvaluation {
+  const structured = evaluateStructuredCriterion(criterion, product);
+  if (structured) return structured;
+
   const numeric =
     parseNumericConstraint(criterion.description) ?? parseNumericConstraint(criterion.rawPhrase);
 

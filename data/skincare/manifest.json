@@ -1,15 +1,13 @@
 {
-  "source": "Amazon Reviews 2023, Beauty and Personal Care metadata",
-  "source_url": "https://mcauleylab.ucsd.edu/public_datasets/data/amazon_2023/raw/meta_categories/meta_Beauty_and_Personal_Care.jsonl.gz",
-  "items": 36,
-  "records_scanned": 2718,
+  "source": "Synthetic demo fixtures",
+  "items": 8,
   "groups": {
-    "sun_protection": 6,
-    "toner_essence": 6,
-    "cleanser": 6,
-    "serum_treatment": 6,
-    "moisturizer": 6,
-    "mask_exfoliant": 6
+    "cleanser": 7,
+    "toner_essence": 1
   },
-  "notes": "A compact skincare-only catalog generated from a bounded source stream. Product image URLs are retained; images are not redistributed locally."
+  "product_families": [
+    "oily_skin_cleanser"
+  ],
+  "schema_version": 1,
+  "notes": "Controlled near-neighbour variants for deterministic retrieval demonstrations. Clothing is maintained separately and untouched."
 }
