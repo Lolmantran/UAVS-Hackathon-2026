@@ -37,6 +37,11 @@ export interface ExtractionInput {
   category?: ProductCategory;
   /** Prior clarification Q&A, folded back in on a resumed session. */
   priorAnswers?: Array<{ question: string; answer: string }>;
+  /** find_complementary_product only: the candidate pool is already restricted to items that
+   *  pair with the anchor by taxonomy (see bundling/engine.ts), so extraction must not invent a
+   *  criterion requiring product text to literally reference/pair-with a specific other product —
+   *  no product's text will ever say that, so it would permanently keep ranked_results empty. */
+  suppressPairingCriterion?: boolean;
 }
 
 export interface CriterionEvaluation {
@@ -90,6 +95,12 @@ export interface Session {
   originTool: OriginTool;
   /** Only set when originTool is "find_complementary_product" — the product being paired against. */
   anchorProductId?: string;
+  /** Text used for the embedding-similarity ranking step specifically, which may differ from
+   *  originalQuery — e.g. find_complementary_product enriches this with the anchor's title for
+   *  ranking quality, while keeping originalQuery (sent to extraction) anchor-name-free so the
+   *  model doesn't invent an unsatisfiable "must reference this product" criterion. Falls back to
+   *  originalQuery when not set. */
+  embeddingContextText?: string;
   /** The question currently awaiting an answer, if status is needs_clarification; cleared once answered. */
   pendingQuestion?: string;
 }
