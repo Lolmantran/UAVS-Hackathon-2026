@@ -21,6 +21,10 @@ export interface RunSearchInput {
   /** Restrict ranking/search to this pool instead of the full catalog (used by find_complementary_product). */
   candidatePool?: Product[];
   anchorProductId?: string;
+  /** Text for the embedding-similarity ranking step; falls back to `query`. Lets a caller (e.g.
+   *  find_complementary_product) enrich ranking with context — like the anchor's title — that
+   *  must NOT also go to extraction, or the model may invent an unsatisfiable criterion from it. */
+  embeddingContextText?: string;
 }
 
 export type RankedResultView = ReturnType<typeof toRankedResult>;
@@ -40,10 +44,12 @@ export async function runSearch(input: RunSearchInput): Promise<SearchToolResult
     query: input.query,
     imageBase64: input.imageBase64,
     category: input.category,
+    suppressPairingCriterion: input.originTool === "find_complementary_product",
   });
 
   return settleExtraction(extraction, {
     originalQuery: input.query,
+    embeddingContextText: input.embeddingContextText,
     imageBase64: input.imageBase64,
     originTool: input.originTool,
     anchorProductId: input.anchorProductId,
@@ -71,12 +77,14 @@ export async function resumeSearch(sessionId: string, answer: string): Promise<S
     imageBase64: session.imageBase64,
     category: session.intent.category ?? undefined,
     priorAnswers: clarificationHistory,
+    suppressPairingCriterion: session.originTool === "find_complementary_product",
   });
 
   const candidatePool = resolveCandidatePool(session.originTool, session.anchorProductId);
 
   return settleExtraction(extraction, {
     originalQuery: session.originalQuery,
+    embeddingContextText: session.embeddingContextText,
     imageBase64: session.imageBase64,
     originTool: session.originTool,
     anchorProductId: session.anchorProductId,
@@ -95,6 +103,7 @@ function resolveCandidatePool(originTool: OriginTool, anchorProductId?: string):
 
 interface SettleContext {
   originalQuery: string;
+  embeddingContextText?: string;
   imageBase64?: string;
   originTool: OriginTool;
   anchorProductId?: string;
@@ -107,6 +116,7 @@ async function settleExtraction(extraction: ExtractionResult, ctx: SettleContext
   if (extraction.status === "needs_clarification") {
     const sessionPatch = {
       originalQuery: ctx.originalQuery,
+      embeddingContextText: ctx.embeddingContextText,
       imageBase64: ctx.imageBase64,
       intent: extraction.partialIntent,
       clarificationHistory: ctx.clarificationHistory,
@@ -130,7 +140,7 @@ async function settleExtraction(extraction: ExtractionResult, ctx: SettleContext
 
   const topK = Math.max(pool.length, DEFAULT_TOP_K);
   const matches = await similaritySearch(
-    { text: `${intent.useCaseSummary}. ${ctx.originalQuery}`, imageBase64: ctx.imageBase64 },
+    { text: `${intent.useCaseSummary}. ${ctx.embeddingContextText ?? ctx.originalQuery}`, imageBase64: ctx.imageBase64 },
     { category: intent.category ?? undefined, topK },
   );
 
@@ -144,6 +154,7 @@ async function settleExtraction(extraction: ExtractionResult, ctx: SettleContext
 
   const sessionPatch = {
     originalQuery: ctx.originalQuery,
+    embeddingContextText: ctx.embeddingContextText,
     imageBase64: ctx.imageBase64,
     intent,
     clarificationHistory: ctx.clarificationHistory,

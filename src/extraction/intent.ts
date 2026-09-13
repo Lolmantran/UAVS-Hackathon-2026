@@ -196,6 +196,18 @@ function buildContents(input: ExtractionInput): Content[] {
     }
   }
 
+  if (input.suppressPairingCriterion) {
+    lines.push(
+      "This search's candidate pool has ALREADY been restricted upstream to items that pair with " +
+        "a specific anchor product, by category/taxonomy rules — that compatibility is structurally " +
+        "guaranteed, not something to re-verify. Do NOT create a criterion requiring the product's " +
+        "own text to mention, reference, match, or 'pair with' any other specific product — no " +
+        "product's own description will ever say that, so such a criterion could never be satisfied. " +
+        "Only extract criteria about the complementary item's OWN attributes (type, color, fit, " +
+        "material, price, etc.) as stated by the buyer.",
+    );
+  }
+
   const parts: Part[] = [{ text: lines.join("\n") }];
 
   if (input.imageBase64) {
