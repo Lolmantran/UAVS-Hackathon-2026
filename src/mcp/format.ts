@@ -28,6 +28,18 @@ export function toRankedResult(scored: ScoredProduct) {
 }
 
 export function toBundleResponse(bundle: BundleSuggestion) {
+  const anchorPrice = bundle.anchor.priceUsd ?? 0;
+  const itemsFullPrice = bundle.items.reduce((sum, item) => sum + (item.product.priceUsd ?? 0), 0);
+  const itemsDiscountedPrice = bundle.items.reduce(
+    (sum, item) => sum + (item.product.priceUsd ?? 0) * (1 - item.discountPercent / 100),
+    0,
+  );
+  const subtotalUsd = anchorPrice + itemsFullPrice;
+  const proposedTotalUsd = anchorPrice + itemsDiscountedPrice;
+  const missingPriceIds = [bundle.anchor, ...bundle.items.map((item) => item.product)]
+    .filter((p) => p.priceUsd === null)
+    .map((p) => p.id);
+
   return {
     anchor: toProductSummary(bundle.anchor),
     bundleItems: bundle.items.map((item) => ({
@@ -35,5 +47,18 @@ export function toBundleResponse(bundle: BundleSuggestion) {
       discountPercent: item.discountPercent,
       reason: item.reason,
     })),
+    proposal: {
+      currency: "USD",
+      subtotalUsd: round2(subtotalUsd),
+      proposedTotalUsd: round2(proposedTotalUsd),
+      savingsUsd: round2(subtotalUsd - proposedTotalUsd),
+      ...(missingPriceIds.length > 0
+        ? { note: `No price data for: ${missingPriceIds.join(", ")} — treated as $0.` }
+        : {}),
+    },
   };
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
 }

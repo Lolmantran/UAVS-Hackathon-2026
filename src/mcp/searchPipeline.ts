@@ -8,6 +8,10 @@ import { getComplementaryCandidates } from "../bundling/engine.js";
 import { toRankedResult } from "./format.js";
 
 const DEFAULT_TOP_K = 25;
+// Cap on how many eligible matches we hand back to the client. `ranked` can otherwise include
+// every product that satisfies all mandatory criteria, which for a broad query can be dozens.
+const MAX_RANKED_RESULTS = 10;
+const MAX_SECONDARY_RESULTS = 3;
 
 export interface RunSearchInput {
   query: string;
@@ -152,7 +156,7 @@ async function settleExtraction(extraction: ExtractionResult, ctx: SettleContext
   return {
     status: "ok",
     sessionId: session.id,
-    rankedResults: ranked.map(toRankedResult),
-    secondaryResults: secondary.slice(0, 5).map(toRankedResult),
+    rankedResults: ranked.slice(0, MAX_RANKED_RESULTS).map(toRankedResult),
+    secondaryResults: secondary.slice(0, MAX_SECONDARY_RESULTS).map(toRankedResult),
   };
 }

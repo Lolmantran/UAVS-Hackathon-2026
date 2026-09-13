@@ -35,6 +35,7 @@ const RESPONSE_SCHEMA: Schema = {
       format: "enum",
       enum: ["clothing", "electronics", "home-goods", "skincare"],
     },
+    itemType: { type: Type.STRING },
     useCaseSummary: { type: Type.STRING },
     criteria: {
       type: Type.ARRAY,
@@ -59,7 +60,7 @@ const RESPONSE_SCHEMA: Schema = {
       required: ["question", "reason"],
     },
   },
-  required: ["needsClarification", "category", "useCaseSummary", "criteria"],
+  required: ["needsClarification", "category", "itemType", "useCaseSummary", "criteria"],
 };
 
 // Category-agnostic on purpose: no per-category branching here. Category-specific nuance
@@ -74,6 +75,7 @@ Output ONLY a single JSON object (no markdown, no commentary) matching exactly t
 {
   "needsClarification": boolean,
   "category": "clothing" | "electronics" | "home-goods" | "skincare" | null,
+  "itemType": string,              // ONLY the fundamental kind of product, see rule below
   "useCaseSummary": string,       // short semantic summary of what the buyer is trying to achieve
   "criteria": [
     {
@@ -89,12 +91,17 @@ Output ONLY a single JSON object (no markdown, no commentary) matching exactly t
 Rules:
 - category: use the category hint if one is given, unless the query clearly contradicts it. Otherwise
   infer it from the query/image if obvious, or use null if it genuinely can't be determined.
-- Always include exactly one criterion with attribute "item_type", importance "mandatory", as the
-  FIRST entry in criteria. Its description must name ONLY the fundamental kind of product being
-  requested (e.g. "boot", "face wash", "wifi security camera", "tablet case") — never bundle in
-  material, color, or style modifiers; those become their own separate criteria. Getting the right
-  kind of product outranks every other attribute downstream, so this criterion must be the bare noun,
-  not a qualified phrase.
+- itemType is a SEPARATE top-level field, not a criteria[] entry. It must name ONLY the fundamental
+  kind of product being requested (e.g. "boot", "t-shirt", "face wash", "wifi security camera",
+  "tablet case") — 1-3 words, the bare noun phrase alone. NEVER fold in material, color, fit, sleeve
+  length, neckline, or any other modifier, even if the buyer's text or the reference image makes that
+  modifier obvious — those belong in criteria as their own separate entries instead. Getting the right
+  kind of product outranks every other attribute downstream, and this field is always treated as a
+  mandatory match, so keeping it a bare noun is what lets it match real, often terse, catalog text. If
+  the request is too vague to name a specific kind, use the most general accurate term (e.g. "top",
+  "accessory") rather than leaving this blank or padding it with descriptors.
+- Never duplicate itemType as an entry inside criteria (no "item_type"/"product_type"/"garment_type"
+  criterion) — it is already captured by the itemType field above.
 - Mandatory vs. preferred: an explicitly stated hard constraint (a price cap, an exclusion, a stated
   must-have) is mandatory. A stated nice-to-have ("preferably foldable", a vague style preference) is
   preferred. An unqualified but clearly requested feature defaults to mandatory — read the buyer's
@@ -110,8 +117,10 @@ Rules:
   and neither the query text nor the reference image makes the intended wearer reasonably clear,
   treat that as exactly the kind of missing-attribute case above and ask a clarification question
   about it, rather than guessing or leaving it out of criteria.
-- When needsClarification is true, still populate category/useCaseSummary/criteria with whatever can
-  be confidently extracted already (a partial intent), and include exactly one clarification question.
+- When needsClarification is true, still populate category/itemType/useCaseSummary/criteria with
+  whatever can be confidently extracted already (a partial intent), and include exactly one
+  clarification question. itemType is still required even then — use a general term if the specific
+  kind isn't yet clear (see the itemType rule above).
 - Never include markdown code fences or any text outside the single JSON object.`;
 
 export async function extractIntent(input: ExtractionInput): Promise<ExtractionResult> {
@@ -234,18 +243,35 @@ function stripCodeFences(raw: string): string {
   return fenced ? fenced[1] : trimmed;
 }
 
+// Attribute keys that would duplicate/conflict with the synthesized item_type criterion below,
+// in case the model adds one to criteria[] anyway despite the prompt telling it not to.
+const ITEM_TYPE_ATTRIBUTE_ALIASES = new Set(["item_type", "itemtype", "product_type", "garment_type"]);
+
 function toExtractionResult(data: RawExtraction): ExtractionResult {
-  const criteria: Criterion[] = data.criteria.map((c) => ({
-    attribute: c.attribute,
-    description: c.description,
-    importance: c.importance,
-    rawPhrase: c.rawPhrase,
-  }));
+  // The item_type criterion is always synthesized here from the dedicated itemType field, never
+  // taken from the model's criteria[] output — see schema.ts for why. Always mandatory, always a
+  // bare noun, always keyed "item_type" so rank.ts's item-type-priority sort can find it reliably.
+  const itemTypeCriterion: Criterion = {
+    attribute: "item_type",
+    description: data.itemType,
+    importance: "mandatory",
+    rawPhrase: data.itemType,
+  };
+
+  const otherCriteria: Criterion[] = data.criteria
+    .filter((c) => !ITEM_TYPE_ATTRIBUTE_ALIASES.has(c.attribute.toLowerCase()))
+    .map((c) => ({
+      attribute: c.attribute,
+      description: c.description,
+      importance: c.importance,
+      rawPhrase: c.rawPhrase,
+    }));
 
   const partialIntent: ExtractedIntent = {
     category: data.category,
+    itemType: data.itemType,
     useCaseSummary: data.useCaseSummary,
-    criteria,
+    criteria: [itemTypeCriterion, ...otherCriteria],
   };
 
   if (data.needsClarification) {

@@ -1,7 +1,7 @@
 import path from "node:path";
 import type { Product, ProductCategory } from "../types/catalog.js";
 import { loadCatalog } from "./loader.js";
-import { describeImage, generateTextEmbedding } from "../embedding/gemini.js";
+import { generateEmbedding } from "../embedding/gemini.js";
 import { openVectorStore, querySimilar, type VectorStore } from "../embedding/vectorStore.js";
 
 const VECTOR_STORE_PATH = path.resolve(process.cwd(), "var/catalog.vec.sqlite");
@@ -54,8 +54,9 @@ export interface SimilaritySearchMatch {
   similarity: number;
 }
 
-// Embeds the query (captioning the image first, when given — embedContent is text-only, see
-// src/embedding/gemini.ts), queries the vector store, and maps rowids back to Products.
+// Embeds the query (text and/or image together in one embedContent call — gemini-embedding-2
+// is natively multimodal, see src/embedding/gemini.ts), queries the vector store, and maps
+// rowids back to Products.
 export async function similaritySearch(
   query: SimilaritySearchQuery,
   opts: SimilaritySearchOptions = {},
@@ -66,15 +67,10 @@ export async function similaritySearch(
     throw new Error("similaritySearch requires at least one of query.text or query.imageBase64");
   }
 
-  const textParts: string[] = [];
-  if (query.imageBase64) {
-    textParts.push(await describeImage({ imageBase64: query.imageBase64 }));
-  }
-  if (query.text) {
-    textParts.push(query.text);
-  }
-
-  const queryEmbedding = await generateTextEmbedding(textParts.join(". "));
+  const queryEmbedding = await generateEmbedding({
+    text: query.text,
+    image: query.imageBase64 ? { imageBase64: query.imageBase64 } : undefined,
+  });
 
   const topK = opts.topK ?? 10;
   // Overfetch when filtering by category, since sqlite-vec's KNN result may be dominated by

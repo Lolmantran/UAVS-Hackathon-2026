@@ -1,9 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { env } from "../config/env.js";
 import { MODEL_CONFIG } from "../config/model.js";
-import { throttleEmbedding, throttleGenerateContent } from "../config/rateLimit.js";
+import { throttleEmbedding } from "../config/rateLimit.js";
 
 const EXT_MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -22,11 +22,36 @@ function getClient(): GoogleGenAI {
   return client;
 }
 
-export async function generateTextEmbedding(text: string): Promise<number[]> {
+export interface DescribeImageInput {
+  imageUrl?: string;
+  imageBase64?: string;
+  imagePath?: string;
+}
+
+export interface EmbedInput {
+  text?: string;
+  image?: DescribeImageInput;
+}
+
+// gemini-embedding-2 is natively multimodal — text and image parts go into one embedContent
+// call and land in the same vector space, no separate captioning step needed.
+export async function generateEmbedding(input: EmbedInput): Promise<number[]> {
+  const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
+  if (input.text) {
+    parts.push({ text: input.text });
+  }
+  if (input.image) {
+    const { mimeType, data } = await resolveImageBytes(input.image);
+    parts.push({ inlineData: { mimeType, data } });
+  }
+  if (parts.length === 0) {
+    throw new Error("generateEmbedding requires at least one of text or image");
+  }
+
   await throttleEmbedding();
   const response = await getClient().models.embedContent({
     model: MODEL_CONFIG.embedding,
-    contents: text,
+    contents: parts,
   });
 
   const values = response.embeddings?.[0]?.values;
@@ -36,37 +61,13 @@ export async function generateTextEmbedding(text: string): Promise<number[]> {
   return values;
 }
 
-export interface DescribeImageInput {
-  imageUrl?: string;
-  imageBase64?: string;
-  imagePath?: string;
-}
-
-// Captions an image via the vision-capable text model, since embedContent is text-only.
-// Exactly one of imageUrl/imageBase64/imagePath must be given; imageUrl is fetched and
-// imagePath is read from local disk, both inlined as base64 bytes.
-export async function describeImage(input: DescribeImageInput): Promise<string> {
+// Resolves any supported image input (raw base64, data: URI, local path, or URL) to a single
+// data: URI. Tools call this at the MCP boundary so an agent can pass a path or URL instead of
+// inlining hundreds of kilobytes of base64 into a tool argument, while everything downstream
+// keeps handling one inline representation.
+export async function resolveImageToDataUri(input: DescribeImageInput): Promise<string> {
   const { mimeType, data } = await resolveImageBytes(input);
-
-  await throttleGenerateContent();
-  const response = await getClient().models.generateContent({
-    model: MODEL_CONFIG.text,
-    contents: [
-      {
-        text:
-          "Describe this product image in 2-3 concise sentences for a product search index. " +
-          "Mention visible category, type, color, material, and any distinguishing features. " +
-          "Do not speculate about brand or price.",
-      },
-      { inlineData: { mimeType, data } },
-    ],
-  });
-
-  const text = response.text;
-  if (!text) {
-    throw new Error("Gemini generateContent returned no caption text");
-  }
-  return text.trim();
+  return `data:${mimeType};base64,${data}`;
 }
 
 async function resolveImageBytes(input: DescribeImageInput): Promise<{ mimeType: string; data: string }> {
@@ -90,10 +91,15 @@ async function resolveImageBytes(input: DescribeImageInput): Promise<{ mimeType:
   }
 
   if (input.imagePath) {
-    const mimeType = EXT_MIME_TYPES[path.extname(input.imagePath).toLowerCase()] ?? "image/jpeg";
-    const buffer = readFileSync(input.imagePath);
+    // Relative paths resolve against the server's cwd (the repo root, per .mcp.json).
+    const resolved = path.resolve(input.imagePath);
+    if (!existsSync(resolved)) {
+      throw new Error(`Image file not found: ${resolved} (from imagePath "${input.imagePath}")`);
+    }
+    const mimeType = EXT_MIME_TYPES[path.extname(resolved).toLowerCase()] ?? "image/jpeg";
+    const buffer = readFileSync(resolved);
     return { mimeType, data: buffer.toString("base64") };
   }
 
-  throw new Error("describeImage requires one of imageUrl, imageBase64, or imagePath");
+  throw new Error("resolveImageBytes requires one of imageUrl, imageBase64, or imagePath");
 }
