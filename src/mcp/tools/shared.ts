@@ -1,7 +1,10 @@
 import { z } from "zod";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { SearchToolResult } from "../searchPipeline.js";
-import { resolveImageToDataUri } from "../../embedding/gemini.js";
+import type { Product } from "../../types/catalog.js";
+import { getProduct } from "../../catalog/repository.js";
+import { logLine } from "../../config/logger.js";
+import { resolveImageBytes, resolveImageToDataUri } from "../../embedding/gemini.js";
 
 // Three interchangeable ways for an agent to supply a reference image. Prefer path or url:
 // a calling LLM cannot realistically emit a whole base64 image as a tool argument (a 400KB
@@ -56,7 +59,7 @@ export async function resolveToolImage(
 // Shared response formatting for the three search-shaped tools (search_exact_product,
 // find_matching_product, find_complementary_product) and answer_clarification, which all
 // resolve to the same SearchToolResult shape.
-export function searchResultToCallToolResult(result: SearchToolResult): CallToolResult {
+export async function searchResultToCallToolResult(result: SearchToolResult): Promise<CallToolResult> {
   if (result.status === "needs_clarification") {
     return {
       content: [
@@ -84,6 +87,9 @@ export function searchResultToCallToolResult(result: SearchToolResult): CallTool
         type: "text",
         text: `session_id: ${result.sessionId} — ${rankedCount} matching product(s), ${secondaryCount} secondary/near-miss product(s) shown for context.`,
       },
+      ...(await productImageBlocks(
+        [...(result.rankedResults ?? []), ...(result.secondaryResults ?? [])].map((r) => r.productId),
+      )),
     ],
     structuredContent: {
       status: "ok",
@@ -92,6 +98,39 @@ export function searchResultToCallToolResult(result: SearchToolResult): CallTool
       secondary_results: result.secondaryResults ?? [],
     },
   };
+}
+
+type ContentBlock = CallToolResult["content"][number];
+
+// Photos go back as MCP image content blocks, so the calling agent sees each product and clients
+// that render tool results can show it. Capped because each catalog photo is up to ~1MB.
+const MAX_RESULT_IMAGES = 4;
+
+/** Image blocks, each preceded by a label naming the product, for the first products that have a photo. */
+export async function productImageBlocks(productIds: string[], max = MAX_RESULT_IMAGES): Promise<ContentBlock[]> {
+  const products = [...new Set(productIds)]
+    .map((id) => getProduct(id))
+    .filter((p): p is Product => Boolean(p?.imagePath || p?.imageUrl))
+    .slice(0, max);
+
+  const blocks = await Promise.all(
+    products.map(async (product): Promise<ContentBlock[]> => {
+      try {
+        const { mimeType, data } = await resolveImageBytes(
+          product.imagePath ? { imagePath: product.imagePath } : { imageUrl: product.imageUrl ?? undefined },
+        );
+        return [
+          { type: "text", text: `Photo of ${product.title} (productId: ${product.id}):` },
+          { type: "image", data, mimeType },
+        ];
+      } catch (err) {
+        // A missing or unreachable photo shouldn't fail the search — the result is still usable.
+        logLine(`photo unavailable for ${product.id}: ${(err as Error).message}`);
+        return [];
+      }
+    }),
+  );
+  return blocks.flat();
 }
 
 export function errorResult(message: string): CallToolResult {

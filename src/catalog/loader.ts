@@ -87,7 +87,8 @@ function loadClothing(): Product[] {
       brand: null,
       priceUsd: null, // H&M metadata has no price field
       imageUrl: null,
-      imagePath: r.image_path,
+      // Absolute, so the photo resolves no matter which directory the server was launched from.
+      imagePath: r.image_path ? path.join(PROJECT_ROOT, r.image_path) : null,
       attributes: { ...r },
       embeddingText,
     };

@@ -3,7 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getProduct, getAllProducts } from "../../catalog/repository.js";
 import { getBundleSuggestions } from "../../bundling/engine.js";
 import { toBundleResponse } from "../format.js";
-import { errorResult } from "./shared.js";
+import { errorResult, productImageBlocks } from "./shared.js";
 
 export function registerGetBundleSuggestions(server: McpServer): void {
   server.registerTool(
@@ -38,6 +38,7 @@ export function registerGetBundleSuggestions(server: McpServer): void {
                   `(save $${payload.proposal.savingsUsd} vs. $${payload.proposal.subtotalUsd} full price).`
                 : `No complementary products found for "${anchor.title}"'s taxonomy group.`,
           },
+          ...(await productImageBlocks([anchor.id, ...bundle.items.map((item) => item.product.id)])),
         ],
         structuredContent: payload,
       };

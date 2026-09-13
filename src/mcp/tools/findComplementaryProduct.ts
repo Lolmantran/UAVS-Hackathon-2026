@@ -60,7 +60,7 @@ export function registerFindComplementaryProduct(server: McpServer): void {
       const candidatePool = getComplementaryCandidates(anchor, getAllProducts());
       if (candidatePool.length === 0) {
         return withAnchorNote(
-          searchResultToCallToolResult({ status: "ok", sessionId: "n/a", rankedResults: [], secondaryResults: [] }),
+          await searchResultToCallToolResult({ status: "ok", sessionId: "n/a", rankedResults: [], secondaryResults: [] }),
           anchor,
           resolvedFromImage,
         );
@@ -83,7 +83,7 @@ export function registerFindComplementaryProduct(server: McpServer): void {
         candidatePool,
         anchorProductId: anchor.id,
       });
-      return withAnchorNote(searchResultToCallToolResult(result), anchor, resolvedFromImage);
+      return withAnchorNote(await searchResultToCallToolResult(result), anchor, resolvedFromImage);
     },
   );
 }
