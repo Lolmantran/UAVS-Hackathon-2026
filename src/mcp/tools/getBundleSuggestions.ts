@@ -13,9 +13,9 @@ export function registerGetBundleSuggestions(server: McpServer): void {
       title: "Get bundle suggestions",
       _meta: PRODUCT_RESULTS_TOOL_META,
       description:
-        "Merchant-side upsell: given an anchor product (e.g. facewash), return 1-2 complementary " +
-        "products (e.g. toner, moisturiser) with a mocked bundle discount and a proposed bundle " +
-        "price, to encourage a larger basket. Informational only — does not create an order.",
+        "Optional explicit view of the automatic merchant-side companion offer. Given an anchor " +
+        "product, return up to two curated complementary products with a mocked bundle discount " +
+        "and proposed bundle price. Informational only — does not create an order.",
       inputSchema: {
         anchor_product_id: z.string().min(1).describe("Product id to build a bundle offer around"),
       },

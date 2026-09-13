@@ -1,10 +1,10 @@
 import type { Product, ProductCategory } from "../types/catalog.js";
-import type { ClarificationTurn, ExtractionResult, OriginTool } from "../types/pipeline.js";
+import type { BundleSuggestion, ClarificationTurn, ExtractionResult, OriginTool } from "../types/pipeline.js";
 import { extractIntent } from "../extraction/intent.js";
 import { rankProductsSemantic } from "../ranking/rank.js";
 import { similaritySearch, getAllProducts, getProductsByCategory, getProduct } from "../catalog/repository.js";
 import { createSession, getSession, updateSession } from "../session/store.js";
-import { getComplementaryCandidates } from "../bundling/engine.js";
+import { getBundleSuggestions, getComplementaryCandidates } from "../bundling/engine.js";
 import { toRankedResult } from "./format.js";
 
 const DEFAULT_TOP_K = 25;
@@ -35,6 +35,8 @@ export interface SearchToolResult {
   rankedResults?: RankedResultView[];
   secondaryResults?: RankedResultView[];
   clarification?: { question: string; reason: string };
+  /** A low-friction, deterministic companion offer for the best search result when available. */
+  automaticBundleSuggestion?: BundleSuggestion;
 }
 
 export async function runSearch(input: RunSearchInput): Promise<SearchToolResult> {
@@ -164,10 +166,16 @@ async function settleExtraction(extraction: ExtractionResult, ctx: SettleContext
     ? updateSession(ctx.existingSessionId, sessionPatch)
     : createSession(sessionPatch);
 
+  const automaticBundleSuggestion =
+    ctx.originTool === "find_complementary_product" || ranked.length === 0
+      ? undefined
+      : getBundleSuggestions(ranked[0].product, getAllProducts(), { query: ctx.originalQuery });
+
   return {
     status: "ok",
     sessionId: session.id,
     rankedResults: ranked.slice(0, MAX_RANKED_RESULTS).map(toRankedResult),
     secondaryResults: secondary.slice(0, MAX_SECONDARY_RESULTS).map(toRankedResult),
+    ...(automaticBundleSuggestion?.items.length ? { automaticBundleSuggestion } : {}),
   };
 }

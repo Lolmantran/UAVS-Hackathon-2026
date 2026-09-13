@@ -5,6 +5,7 @@ import type { Product } from "../../types/catalog.js";
 import { getProduct } from "../../catalog/repository.js";
 import { logLine } from "../../config/logger.js";
 import { resolveImageBytes, resolveImageToDataUri } from "../../embedding/gemini.js";
+import { toBundleResponse } from "../format.js";
 
 // Three interchangeable ways for an agent to supply a reference image. Prefer path or url:
 // a calling LLM cannot realistically emit a whole base64 image as a tool argument (a 400KB
@@ -56,6 +57,73 @@ export async function resolveToolImage(
   });
 }
 
+interface ProductResultForText {
+  productId: string;
+  title: string;
+  priceUsd: number | null;
+  imageUrl: string | null;
+  imagePath: string | null;
+}
+
+function formatPrice(priceUsd: number | null): string {
+  return priceUsd === null ? "unavailable in source catalog" : `$${priceUsd.toFixed(2)} USD`;
+}
+
+function formatProductLine(product: ProductResultForText): string {
+  const image = product.imageUrl ?? product.imagePath ?? "unavailable in source catalog";
+  return `- ${product.title} (${product.productId}) — price: ${formatPrice(product.priceUsd)}; image: ${image}`;
+}
+
+function toBuyerFacingBundleOffer(result: SearchToolResult):
+  | {
+      heading: string;
+      message: string;
+      anchorProductId: string;
+      bundleProductIds: string[];
+      proposedTotalUsd: number;
+      savingsUsd: number;
+    }
+  | undefined {
+  if (!result.automaticBundleSuggestion) return undefined;
+  const bundle = toBundleResponse(result.automaticBundleSuggestion);
+  if (bundle.bundleItems.length === 0) return undefined;
+
+  return {
+    heading: "Automatic bundle offer",
+    message:
+      `Complete the set: add ${bundle.bundleItems.map((item) => item.title).join(" + ")} to ` +
+      `"${bundle.anchor.title}" for $${bundle.proposal.proposedTotalUsd} USD ` +
+      `(save $${bundle.proposal.savingsUsd}).`,
+    anchorProductId: bundle.anchor.productId,
+    bundleProductIds: bundle.bundleItems.map((item) => item.productId),
+    proposedTotalUsd: bundle.proposal.proposedTotalUsd,
+    savingsUsd: bundle.proposal.savingsUsd,
+  };
+}
+
+function formatSearchText(result: SearchToolResult): string {
+  const ranked = result.rankedResults ?? [];
+  const secondary = result.secondaryResults ?? [];
+  const bundleOffer = toBuyerFacingBundleOffer(result);
+  const lines = [
+    `session_id: ${result.sessionId} — ${ranked.length} matching product(s), ${secondary.length} secondary/near-miss product(s).`,
+  ];
+
+  if (ranked.length > 0) {
+    lines.push("Matching product metadata:", ...ranked.map(formatProductLine));
+  }
+  if (bundleOffer) {
+    // This lives immediately after primary matches so a chat agent sees it as part of the
+    // recommendation, not optional diagnostic metadata appended after near-misses.
+    lines.push(`${bundleOffer.heading} — include in the buyer-facing reply:`, bundleOffer.message);
+  }
+  if (secondary.length > 0) {
+    lines.push("Secondary product metadata:", ...secondary.map(formatProductLine));
+  }
+  lines.push("Each structured result also includes catalogMetadata and explicit availability flags.");
+  return lines.join("\n");
+}
+
 // Shared response formatting for the three search-shaped tools (search_exact_product,
 // find_matching_product, find_complementary_product) and answer_clarification, which all
 // resolve to the same SearchToolResult shape.
@@ -78,14 +146,13 @@ export async function searchResultToCallToolResult(result: SearchToolResult): Pr
     };
   }
 
-  const rankedCount = result.rankedResults?.length ?? 0;
-  const secondaryCount = result.secondaryResults?.length ?? 0;
+  const bundleOffer = toBuyerFacingBundleOffer(result);
 
   return {
     content: [
       {
         type: "text",
-        text: `session_id: ${result.sessionId} — ${rankedCount} matching product(s), ${secondaryCount} secondary/near-miss product(s) shown for context.`,
+        text: formatSearchText(result),
       },
       ...(await productImageBlocks(
         [...(result.rankedResults ?? []), ...(result.secondaryResults ?? [])].map((r) => r.productId),
@@ -96,6 +163,10 @@ export async function searchResultToCallToolResult(result: SearchToolResult): Pr
       session_id: result.sessionId,
       ranked_results: result.rankedResults ?? [],
       secondary_results: result.secondaryResults ?? [],
+      ...(bundleOffer ? { automatic_bundle_offer: bundleOffer } : {}),
+      ...(result.automaticBundleSuggestion
+        ? { automatic_bundle_suggestion: toBundleResponse(result.automaticBundleSuggestion) }
+        : {}),
     },
   };
 }
