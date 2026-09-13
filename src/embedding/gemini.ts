@@ -72,7 +72,7 @@ export async function resolveImageToDataUri(input: DescribeImageInput): Promise<
   return `data:${mimeType};base64,${data}`;
 }
 
-async function resolveImageBytes(input: DescribeImageInput): Promise<{ mimeType: string; data: string }> {
+export async function resolveImageBytes(input: DescribeImageInput): Promise<{ mimeType: string; data: string }> {
   if (input.imageBase64) {
     // Accept either a raw base64 string or a data: URI.
     const match = /^data:(.+?);base64,(.*)$/s.exec(input.imageBase64);
@@ -93,7 +93,8 @@ async function resolveImageBytes(input: DescribeImageInput): Promise<{ mimeType:
   }
 
   if (input.imagePath) {
-    // Relative paths resolve against the server's cwd (the repo root, per .mcp.json).
+    // Relative paths resolve against the server's cwd; catalog image paths are already absolute
+    // (see catalog/loader.ts).
     const resolved = path.resolve(input.imagePath);
     if (!existsSync(resolved)) {
       throw new Error(`Image file not found: ${resolved} (from imagePath "${input.imagePath}")`);

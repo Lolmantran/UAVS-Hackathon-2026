@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { PROJECT_ROOT } from "../config/paths.js";
 import type { Product, ProductCategory } from "../types/catalog.js";
 
-const DATA_DIR = path.resolve(process.cwd(), "data");
+const DATA_DIR = path.join(PROJECT_ROOT, "data");
 
 interface HmClothingRecord {
   article_id: string;
@@ -201,11 +202,7 @@ function loadClothing(): Product[] {
       priceUsd: syntheticPriceUsd,
       imageUrl: null,
       imagePath: r.image_path,
-      attributes: {
-        ...r,
-        demo_price_usd: syntheticPriceUsd,
-        price_source: "synthetic demo price; H&M source metadata did not include a price",
-      },
+      attributes: { ...r },
       embeddingText,
     };
   });

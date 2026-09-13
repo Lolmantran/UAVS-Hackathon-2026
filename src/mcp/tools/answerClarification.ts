@@ -20,7 +20,7 @@ export function registerAnswerClarification(server: McpServer): void {
     async ({ session_id, answer }) => {
       try {
         const result = await resumeSearch(session_id, answer);
-        return searchResultToCallToolResult(result);
+        return await searchResultToCallToolResult(result);
       } catch (err) {
         return errorResult((err as Error).message);
       }

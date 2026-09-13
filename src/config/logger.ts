@@ -2,8 +2,9 @@
 // the running server is doing has to go somewhere else — a plain file the user can `tail -f`.
 import { appendFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
+import { PROJECT_ROOT } from "./paths.js";
 
-const LOG_PATH = path.resolve(process.cwd(), "var/server.log");
+const LOG_PATH = path.join(PROJECT_ROOT, "var/server.log");
 mkdirSync(path.dirname(LOG_PATH), { recursive: true });
 
 export function logLine(message: string): void {

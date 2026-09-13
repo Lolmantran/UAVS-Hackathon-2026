@@ -72,6 +72,21 @@
       "anchorProductId": "0599102001",
       "expectedSuggestionCount": 2,
       "expectedCategory": "clothing"
-    }
+    },
+    {
+      "id": "image-shirt-but-more-formal",
+      "category": "clothing",
+      "query": "I want a shirt like this but more formal.",
+      "image": "floral-dress.png",
+      "expectedRankedInOrder": ["DEMO-CAMERA-EXACT", "DEMO-CAMERA-EXACT-1080"],
+      "expectedSecondary": [
+        "DEMO-CAMERA-NO-LOCAL",
+        "DEMO-CAMERA-INDOOR",
+        "DEMO-CAMERA-NO-NIGHT",
+        "DEMO-CAMERA-NO-WEATHER",
+        "DEMO-CAMERA-DOORBELL",
+        "DEMO-CAMERA-MOUNT"
+      ]
+    },
   ]
 }

@@ -1,10 +1,11 @@
 import path from "node:path";
+import { PROJECT_ROOT } from "../config/paths.js";
 import type { Product, ProductCategory } from "../types/catalog.js";
 import { loadCatalog } from "./loader.js";
 import { generateEmbedding } from "../embedding/gemini.js";
 import { openVectorStore, querySimilar, type VectorStore } from "../embedding/vectorStore.js";
 
-const VECTOR_STORE_PATH = path.resolve(process.cwd(), "var/catalog.vec.sqlite");
+const VECTOR_STORE_PATH = path.join(PROJECT_ROOT, "var/catalog.vec.sqlite");
 
 // Loaded lazily (not at module init) so importing this module has no side effects until
 // something actually asks for catalog data or runs a search.
