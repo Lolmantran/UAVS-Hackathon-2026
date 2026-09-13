@@ -4,6 +4,7 @@
 // per product (text + image together, gemini-embedding-2 is natively multimodal). Safe to
 // interrupt and re-run (e.g. after swapping to a fresh free-tier API key) — already-embedded
 // products are skipped, so no quota is wasted redoing them.
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { loadCatalogByCategory } from "../catalog/loader.js";
 import { generateEmbedding } from "../embedding/gemini.js";
@@ -16,18 +17,26 @@ const DB_PATH = path.resolve(process.cwd(), "var/catalog.vec.sqlite");
 // build time roughly by CONCURRENCY without bursting past free-tier per-minute rate limits.
 const CONCURRENCY = 1;
 
+function logCooldown(waitMs: number): void {
+  console.log(`  cooling down ${(waitMs / 1000).toFixed(1)}s (free-tier rate limit)...`);
+}
+
 async function embedProduct(product: import("../types/catalog.js").Product): Promise<number[] | null> {
   // A remote imageUrl (electronics/skincare/home-goods) or a local imagePath (clothing) goes
   // into the same embedContent call as embeddingText — one vector per product, no captioning
   // round-trip.
   const image = product.imageUrl
     ? { imageUrl: product.imageUrl }
-    : product.imagePath
+    : product.imagePath && existsSync(path.resolve(product.imagePath))
       ? { imagePath: product.imagePath }
       : undefined;
 
+  if (!image && product.imagePath) {
+    console.warn(`  [warn] local image missing for ${product.id}; embedding text only`);
+  }
+
   try {
-    return await generateEmbedding({ text: product.embeddingText, image });
+    return await generateEmbedding({ text: product.embeddingText, image }, logCooldown);
   } catch (err) {
     // A single rate-limited/failed embed call shouldn't kill the whole batch — skip this
     // product, it can be picked up by re-running the script (upsertEmbedding is idempotent).

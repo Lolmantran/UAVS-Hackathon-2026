@@ -16,6 +16,56 @@ import { fileURLToPath } from "node:url";
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(SCRIPT_DIR, "..");
 
+// One representative image is deliberately shared by each synthetic product family. These are
+// illustrative Amazon-image URLs retained from the source sample, not live merchant listings.
+const IMAGE_URL_BY_FAMILY = {
+  running_smartwatch: "https://m.media-amazon.com/images/I/51ajKKbi76L._AC_UL1000_.jpg",
+  running_wireless_earbuds: "https://m.media-amazon.com/images/I/6182myBMxuL._AC_SL1500_.jpg",
+  earbud_charging_case: "https://m.media-amazon.com/images/I/81wW5sRA+jS._AC_SL1500_.jpg",
+  portable_running_power_bank: "https://m.media-amazon.com/images/I/81hAcNitfKL._AC_SL1500_.jpg",
+  outdoor_security_camera: "https://m.media-amazon.com/images/I/51ygkj-cYwL._AC_SL1000_.jpg",
+  camera_micro_sd: "https://m.media-amazon.com/images/I/61jajvgWBzL._AC_SL1000_.jpg",
+  camera_mount: "https://m.media-amazon.com/images/I/314+6fI-J5L._AC_.jpg",
+  oily_skin_cleanser: "https://m.media-amazon.com/images/I/71n%2BJv2f1aL._SL1500_.jpg",
+  oily_skin_toner: "https://m.media-amazon.com/images/I/31nOZ6HiDTL.jpg",
+  oily_skin_moisturizer: "https://m.media-amazon.com/images/I/71F7VzOU-gL._SL1500_.jpg",
+};
+
+// The generic bundle engine reads these target keys and roles from the data. New product families
+// can participate by declaring metadata here rather than requiring an engine code branch.
+const BUNDLE_PROFILE_BY_FAMILY = {
+  running_smartwatch: { targets: ["running_audio"], compatibility_tags: ["running", "casual_workout"] },
+  running_wireless_earbuds: {
+    roles: ["running_audio"],
+    targets: ["earbud_charging_case", "portable_running_power"],
+    compatibility_tags: ["running", "casual_workout"],
+  },
+  earbud_charging_case: { roles: ["earbud_charging_case"], compatibility_tags: ["running", "casual_workout"] },
+  portable_running_power_bank: { roles: ["portable_running_power"], compatibility_tags: ["running", "casual_workout"] },
+  outdoor_security_camera: { targets: ["camera_storage", "camera_mount"], compatibility_tags: ["outdoor_security"] },
+  camera_micro_sd: { roles: ["camera_storage"], compatibility_tags: ["outdoor_security"] },
+  camera_mount: { roles: ["camera_mount"], compatibility_tags: ["outdoor_security"] },
+  oily_skin_cleanser: {
+    targets: ["post_cleanse_toner", "lightweight_moisturizer"],
+    compatibility_tags: ["oily", "acne_prone"],
+  },
+  oily_skin_toner: {
+    roles: ["post_cleanse_toner"],
+    targets: ["lightweight_moisturizer"],
+    compatibility_tags: ["oily", "acne_prone"],
+  },
+  oily_skin_moisturizer: { roles: ["lightweight_moisturizer"], compatibility_tags: ["oily", "acne_prone"] },
+};
+
+function bundleMetadata(productFamily, variant) {
+  return {
+    ...(BUNDLE_PROFILE_BY_FAMILY[productFamily] ?? {}),
+    // Near-miss variants remain in retrieval tests but never become automatic upsells.
+    offer_eligible: /^(exact_match|valid_lower_resolution_match|complementary_add_on)$/.test(variant),
+    priority: variant === "exact_match" ? 100 : variant === "valid_lower_resolution_match" ? 80 : 90,
+  };
+}
+
 const baseRecord = ({
   id,
   categoryPath,
@@ -27,6 +77,7 @@ const baseRecord = ({
   features,
   details,
   structuredAttributes,
+  imageUrl = IMAGE_URL_BY_FAMILY[productFamily] ?? null,
 }) => ({
   id,
   source: "Synthetic demo fixture derived from the Amazon catalog schema",
@@ -50,9 +101,10 @@ const baseRecord = ({
     schema_version: 1,
     product_family: productFamily,
     variant,
+    bundling: bundleMetadata(productFamily, variant),
     ...structuredAttributes,
   },
-  image_url: null,
+  image_url: imageUrl,
 });
 
 const electronics = [
@@ -604,6 +656,86 @@ const electronics = [
       installation: { outdoor_suitable: true, weather_resistance: "IP66" },
     },
   }),
+  baseRecord({
+    id: "DEMO-EARBUD-CASE",
+    categoryPath: ["Electronics", "Headphones, Earbuds & Accessories", "Charging Cases"],
+    catalogGroup: "charging_connectivity",
+    productFamily: "earbud_charging_case",
+    variant: "complementary_add_on",
+    title: "Tempo PocketCharge Protective Earbud Charging Case",
+    priceUsd: 35,
+    features: [
+      "USB-C charging case designed for Tempo wireless earbuds.",
+      "Adds two full earbud recharges and protects the earbuds between runs.",
+      "Compact water-resistant shell fits a running belt or jacket pocket.",
+    ],
+    details: { ProductType: "Earbud charging case", Connector: "USB-C", CompatibleFamily: "Tempo" },
+    structuredAttributes: {
+      item_type: "earbud_charging_case",
+      use_cases: ["running", "casual_workout"],
+      compatibility: { compatible_product_family: "running_wireless_earbuds" },
+    },
+  }),
+  baseRecord({
+    id: "DEMO-RUN-POWER",
+    categoryPath: ["Electronics", "Portable Power", "Power Banks"],
+    catalogGroup: "charging_connectivity",
+    productFamily: "portable_running_power_bank",
+    variant: "complementary_add_on",
+    title: "Tempo RunCharge Compact USB-C Power Bank",
+    priceUsd: 29,
+    features: [
+      "Lightweight 5,000mAh USB-C power bank for earbuds and phone charging on long runs.",
+      "Pocket-sized, sweat-resistant shell with USB-C fast charging output.",
+      "Includes a short USB-C cable for a compact workout kit.",
+    ],
+    details: { Capacity: "5000mAh", Connector: "USB-C", FastCharging: true },
+    structuredAttributes: {
+      item_type: "portable_power_bank",
+      use_cases: ["running", "casual_workout", "travel"],
+      charging: { connector: "USB-C", fast_charging: true },
+    },
+  }),
+  baseRecord({
+    id: "DEMO-CAMERA-MICROSD",
+    categoryPath: ["Electronics", "Camera & Photo", "Memory Cards"],
+    catalogGroup: "storage",
+    productFamily: "camera_micro_sd",
+    variant: "complementary_add_on",
+    title: "Sentinel Endurance 256GB microSD Card for Security Cameras",
+    priceUsd: 32,
+    features: [
+      "256GB high-endurance microSD card for continuous local security-camera recording.",
+      "Rated for outdoor temperature changes and repeated overwriting.",
+      "Compatible with Sentinel cameras that support local microSD storage.",
+    ],
+    details: { Capacity: "256GB", CardType: "microSD", IntendedUse: "continuous security recording" },
+    structuredAttributes: {
+      item_type: "micro_sd_card",
+      use_cases: ["outdoor_security", "local_camera_storage"],
+      compatibility: { compatible_product_family: "outdoor_security_camera" },
+    },
+  }),
+  baseRecord({
+    id: "DEMO-CAMERA-MOUNT-ADDON",
+    categoryPath: ["Electronics", "Camera & Photo", "Video Surveillance", "Mounts"],
+    catalogGroup: "camera_accessories",
+    productFamily: "camera_mount",
+    variant: "complementary_add_on",
+    title: "Sentinel Adjustable Outdoor Security Camera Mount",
+    priceUsd: 24,
+    features: [
+      "Weatherproof adjustable wall mount for Sentinel outdoor security cameras.",
+      "Allows a clear angle for driveway, porch, or side-gate monitoring.",
+      "Camera sold separately; compatible with Sentinel outdoor camera housings.",
+    ],
+    details: { ProductType: "Security camera mount", WeatherResistance: "IP66", CompatibleFamily: "Sentinel" },
+    structuredAttributes: {
+      item_type: "security_camera_mount",
+      use_cases: ["outdoor_security", "camera_installation"],
+      compatibility: { compatible_product_family: "outdoor_security_camera" },
+    },
+  }),
 ];
 
 const skincare = [
@@ -781,6 +913,36 @@ const skincare = [
       use_cases: ["post_cleansing_toner"],
       skin: { suitable_skin_types: ["oily", "acne_prone"], concerns: ["excess_oil", "blemishes"] },
       formula: { fragrance_free: true, non_comedogenic: true, texture: "liquid" },
+      // This original retrieval near-miss doubles as an eligible companion fixture. Its explicit
+      // role overrides the cleanser family's default test-only bundle metadata.
+      bundling: {
+        roles: ["post_cleanse_toner"],
+        targets: ["lightweight_moisturizer"],
+        compatibility_tags: ["oily", "acne_prone"],
+        offer_eligible: true,
+        priority: 100,
+      },
+    },
+  }),
+  baseRecord({
+    id: "DEMO-MOISTURIZER-OILY",
+    categoryPath: ["Beauty & Personal Care", "Skin Care", "Face", "Moisturizers"],
+    catalogGroup: "moisturizer",
+    productFamily: "oily_skin_moisturizer",
+    variant: "complementary_add_on",
+    title: "ClearKind Lightweight Gel Moisturizer for Oily Skin",
+    priceUsd: 21,
+    features: [
+      "Lightweight fragrance-free gel moisturizer for oily and acne-prone skin.",
+      "Non-comedogenic hydration with niacinamide and ceramides after cleansing or toner.",
+      "Absorbs quickly without a greasy finish for everyday routine use.",
+    ],
+    details: { SkinType: ["Oily", "Acne-prone"], Form: "Gel", Fragrance: "Fragrance-free", VolumeMl: 60 },
+    structuredAttributes: {
+      item_type: "facial_moisturizer",
+      use_cases: ["daily_moisturizing", "post_cleansing"],
+      skin: { suitable_skin_types: ["oily", "acne_prone"], concerns: ["hydration", "barrier_support"] },
+      formula: { fragrance_free: true, non_comedogenic: true, texture: "gel" },
     },
   }),
 ];
