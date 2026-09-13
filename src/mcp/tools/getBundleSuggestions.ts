@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { PRODUCT_RESULTS_TOOL_META } from "../ui/productResults.js";
 import { getProduct, getAllProducts } from "../../catalog/repository.js";
 import { getBundleSuggestions } from "../../bundling/engine.js";
 import { toBundleResponse } from "../format.js";
@@ -10,6 +11,7 @@ export function registerGetBundleSuggestions(server: McpServer): void {
     "get_bundle_suggestions",
     {
       title: "Get bundle suggestions",
+      _meta: PRODUCT_RESULTS_TOOL_META,
       description:
         "Merchant-side upsell: given an anchor product (e.g. facewash), return 1-2 complementary " +
         "products (e.g. toner, moisturiser) with a mocked bundle discount and a proposed bundle " +

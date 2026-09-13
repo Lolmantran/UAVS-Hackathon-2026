@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { PRODUCT_RESULTS_TOOL_META } from "../ui/productResults.js";
 import { PRODUCT_CATEGORIES, type ProductCategory } from "../../types/catalog.js";
 import { runSearch } from "../searchPipeline.js";
 import {
@@ -16,6 +17,7 @@ export function registerSearchExactProduct(server: McpServer): void {
     "search_exact_product",
     {
       title: "Search exact product",
+      _meta: PRODUCT_RESULTS_TOOL_META,
       description:
         "Find products matching a complex natural-language query and/or an optional reference " +
         "image (e.g. 'ANC earbuds, good sound, black, under $200'). Returns ranked, justified " +

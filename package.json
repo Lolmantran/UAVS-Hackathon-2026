@@ -13,6 +13,7 @@
   "type": "module",
   "dependencies": {
     "@google/genai": "^2.22.0",
+    "@modelcontextprotocol/ext-apps": "^1.7.5",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "better-sqlite3": "^12.11.1",
     "dotenv": "^17.4.2",

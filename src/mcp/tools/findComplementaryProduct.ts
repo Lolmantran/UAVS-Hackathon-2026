@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { PRODUCT_RESULTS_TOOL_META } from "../ui/productResults.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { PRODUCT_CATEGORIES, type Product, type ProductCategory } from "../../types/catalog.js";
 import { getProduct, getAllProducts, similaritySearch } from "../../catalog/repository.js";
@@ -28,6 +29,7 @@ export function registerFindComplementaryProduct(server: McpServer): void {
     "find_complementary_product",
     {
       title: "Find complementary product",
+      _meta: PRODUCT_RESULTS_TOOL_META,
       description:
         "Given an existing product — by anchor_product_id, or by a reference image of a product " +
         "the buyer already has (e.g. a photo of a shirt they own, which need not be in this " +

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { PRODUCT_RESULTS_TOOL_META } from "../ui/productResults.js";
 import { PRODUCT_CATEGORIES, type ProductCategory } from "../../types/catalog.js";
 import { runSearch } from "../searchPipeline.js";
 import {
@@ -16,6 +17,7 @@ export function registerFindMatchingProduct(server: McpServer): void {
     "find_matching_product",
     {
       title: "Find matching product",
+      _meta: PRODUCT_RESULTS_TOOL_META,
       description:
         "Given a reference image (a look/style/product the buyer likes) plus stated needs " +
         "(e.g. occasion, fit, material), find catalog products tailored to match both. Returns " +

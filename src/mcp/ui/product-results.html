@@ -1,0 +1,279 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Product results</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: var(--color-background-primary, #ffffff);
+    --bg-soft: var(--color-background-secondary, #f4f4f5);
+    --fg: var(--color-text-primary, #18181b);
+    --fg-soft: var(--color-text-secondary, #52525b);
+    --fg-faint: var(--color-text-tertiary, #71717a);
+    --border: var(--color-border-primary, #e4e4e7);
+    --ok: var(--color-text-success, #15803d);
+    --warn: var(--color-text-warning, #b45309);
+    --danger: var(--color-text-danger, #b91c1c);
+    --radius: var(--border-radius-lg, 12px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: var(--color-background-primary, #18181b);
+      --bg-soft: var(--color-background-secondary, #27272a);
+      --fg: var(--color-text-primary, #fafafa);
+      --fg-soft: var(--color-text-secondary, #d4d4d8);
+      --fg-faint: var(--color-text-tertiary, #a1a1aa);
+      --border: var(--color-border-primary, #3f3f46);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 12px;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  h2 { font-size: 13px; font-weight: 600; color: var(--fg-soft); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+  h2:first-child { margin-top: 0; }
+  .note { color: var(--fg-soft); margin: 0 0 12px; }
+  .error { color: var(--danger); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg); display: flex; flex-direction: column; }
+  .card.secondary { opacity: 0.85; }
+  .photo { position: relative; aspect-ratio: 3 / 4; background: var(--bg-soft); display: flex; align-items: center; justify-content: center; color: var(--fg-faint); font-size: 12px; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .body { padding: 10px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .title { font-weight: 600; }
+  .meta { color: var(--fg-faint); font-size: 12px; }
+  .price { font-weight: 600; }
+  .badge { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: var(--bg-soft); color: var(--fg-soft); margin-right: 4px; }
+  .badge.discount { color: var(--ok); }
+  .why { color: var(--fg-soft); font-size: 12px; }
+  .id { color: var(--fg-faint); font-size: 11px; font-family: var(--font-mono, ui-monospace, monospace); margin-top: auto; }
+  .question { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: var(--bg-soft); }
+  .question strong { display: block; margin-bottom: 4px; }
+  .totals { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 16px; }
+  .totals .save { color: var(--ok); font-weight: 600; }
+  .empty { color: var(--fg-faint); }
+</style>
+</head>
+<body>
+<div id="root"><p class="empty">Waiting for results…</p></div>
+<script type="module">
+/*__MCP_APPS_SDK__*/
+const { App, applyDocumentTheme, applyHostStyleVariables, applyHostFonts } = __mcpApps;
+
+const root = document.getElementById("root");
+
+function el(tag, attrs, ...children) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs ?? {})) {
+    if (value === undefined || value === null || value === false) continue;
+    if (key === "class") node.className = value;
+    else node.setAttribute(key, value);
+  }
+  for (const child of children.flat()) {
+    if (child === undefined || child === null || child === false) continue;
+    node.append(child instanceof Node ? child : String(child));
+  }
+  return node;
+}
+
+// Image blocks follow a text label ending "(productId: <id>):" (see productImageBlocks in
+// tools/shared.ts); pair them up so each card gets its own photo.
+function photosByProductId(content) {
+  const photos = new Map();
+  let pendingId = null;
+  for (const block of content ?? []) {
+    if (block.type === "text") {
+      const match = /\(productId: ([^)]+)\):\s*$/.exec(block.text);
+      pendingId = match ? match[1] : null;
+    } else if (block.type === "image" && pendingId) {
+      photos.set(pendingId, `data:${block.mimeType};base64,${block.data}`);
+      pendingId = null;
+    }
+  }
+  return photos;
+}
+
+function formatPrice(priceUsd) {
+  return typeof priceUsd === "number" ? `$${priceUsd.toFixed(2)}` : null;
+}
+
+function productCard(product, photos, { secondary = false, extra = [] } = {}) {
+  const src = photos.get(product.productId);
+  const brandLine = [product.brand, product.category].filter(Boolean).join(" · ");
+  return el(
+    "div",
+    { class: secondary ? "card secondary" : "card" },
+    el(
+      "div",
+      { class: "photo", "data-product-id": src ? null : product.productId, "data-title": product.title },
+      src ? el("img", { src, alt: product.title }) : "Loading photo…",
+    ),
+    el(
+      "div",
+      { class: "body" },
+      el("div", { class: "title" }, product.title),
+      brandLine && el("div", { class: "meta" }, brandLine),
+      formatPrice(product.priceUsd) && el("div", { class: "price" }, formatPrice(product.priceUsd)),
+      extra,
+      el("div", { class: "id" }, product.productId),
+    ),
+  );
+}
+
+function searchCard(result, photos, secondary) {
+  const badges = [];
+  if (typeof result.similarity === "number") {
+    badges.push(el("span", { class: "badge" }, `${Math.round(result.similarity * 100)}% match`));
+  }
+  return productCard(result, photos, {
+    secondary,
+    extra: [
+      badges.length > 0 && el("div", {}, badges),
+      result.justification && el("div", { class: "why" }, result.justification),
+    ],
+  });
+}
+
+function textOf(content) {
+  return (content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
+}
+
+// Cards whose photo wasn't among the result's image blocks (hosts may not forward those to the
+// view) fetch it from the server's app-only get_product_photo tool.
+const photoCache = new Map();
+
+function fetchPhoto(productId) {
+  if (!photoCache.has(productId)) {
+    photoCache.set(
+      productId,
+      app.callServerTool({ name: "get_product_photo", arguments: { product_id: productId } }).then((result) => {
+        const image = result.isError ? null : (result.content ?? []).find((b) => b.type === "image");
+        return image ? `data:${image.mimeType};base64,${image.data}` : null;
+      }),
+    );
+  }
+  return photoCache.get(productId);
+}
+
+function loadMissingPhotos() {
+  for (const slot of root.querySelectorAll(".photo[data-product-id]")) {
+    fetchPhoto(slot.dataset.productId)
+      .then((src) => {
+        if (src) slot.replaceChildren(el("img", { src, alt: slot.dataset.title }));
+        else slot.textContent = "No photo";
+      })
+      .catch((err) => {
+        console.error("photo fetch failed", slot.dataset.productId, err);
+        photoCache.delete(slot.dataset.productId);
+        slot.textContent = "No photo";
+      });
+  }
+}
+
+function render(result) {
+  renderResult(result);
+  loadMissingPhotos();
+}
+
+function renderResult(result) {
+  root.replaceChildren();
+  const data = result.structuredContent ?? {};
+  const photos = photosByProductId(result.content);
+
+  if (result.isError) {
+    root.append(el("p", { class: "error" }, textOf(result.content) || "The tool call failed."));
+    return;
+  }
+
+  if (data.status === "needs_clarification") {
+    root.append(
+      el(
+        "div",
+        { class: "question" },
+        el("strong", {}, data.clarification?.question ?? "More detail needed"),
+        data.clarification?.reason && el("span", { class: "meta" }, data.clarification.reason),
+      ),
+    );
+    return;
+  }
+
+  // get_bundle_suggestions
+  if (data.anchor && Array.isArray(data.bundleItems)) {
+    root.append(el("h2", {}, "Bundle"));
+    root.append(
+      el(
+        "div",
+        { class: "grid" },
+        productCard(data.anchor, photos, { extra: [el("div", {}, el("span", { class: "badge" }, "Your item"))] }),
+        data.bundleItems.map((item) =>
+          productCard(item, photos, {
+            extra: [
+              el("div", {}, el("span", { class: "badge discount" }, `${item.discountPercent}% off in bundle`)),
+              item.reason && el("div", { class: "why" }, item.reason),
+            ],
+          }),
+        ),
+      ),
+    );
+    const p = data.proposal;
+    if (p) {
+      root.append(
+        el(
+          "div",
+          { class: "totals" },
+          el("span", {}, "Full price ", el("s", {}, formatPrice(p.subtotalUsd))),
+          el("span", { class: "price" }, "Bundle price ", formatPrice(p.proposedTotalUsd)),
+          el("span", { class: "save" }, "You save ", formatPrice(p.savingsUsd)),
+        ),
+      );
+      if (p.note) root.append(el("p", { class: "meta" }, p.note));
+    }
+    return;
+  }
+
+  // search_exact_product / find_matching_product / find_complementary_product / answer_clarification
+  const ranked = data.ranked_results ?? [];
+  const secondary = data.secondary_results ?? [];
+
+  if (data.resolved_anchor) {
+    root.append(
+      el("h2", {}, "Matched your photo to"),
+      el("div", { class: "grid" }, productCard(data.resolved_anchor, photos)),
+    );
+  }
+
+  if (ranked.length === 0 && secondary.length === 0) {
+    root.append(el("p", { class: "empty" }, textOf(result.content) || "No matching products found."));
+    return;
+  }
+  if (ranked.length > 0) {
+    root.append(el("h2", {}, "Top matches"), el("div", { class: "grid" }, ranked.map((r) => searchCard(r, photos, false))));
+  }
+  if (secondary.length > 0) {
+    root.append(el("h2", {}, "Also worth a look"), el("div", { class: "grid" }, secondary.map((r) => searchCard(r, photos, true))));
+  }
+}
+
+function applyContext(context) {
+  if (!context) return;
+  if (context.theme) applyDocumentTheme(context.theme);
+  if (context.styles?.variables) applyHostStyleVariables(context.styles.variables);
+  if (context.styles?.css?.fonts) applyHostFonts(context.styles.css.fonts);
+}
+
+const app = new App({ name: "b2a-product-results", version: "0.1.0" });
+app.ontoolresult = (result) => render(result);
+app.onhostcontextchanged = (context) => applyContext(context);
+await app.connect();
+applyContext(app.getHostContext());
+</script>
+</body>
+</html>

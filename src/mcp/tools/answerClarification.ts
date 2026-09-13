@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { PRODUCT_RESULTS_TOOL_META } from "../ui/productResults.js";
 import { resumeSearch } from "../searchPipeline.js";
 import { searchResultToCallToolResult, errorResult } from "./shared.js";
 
@@ -8,6 +9,7 @@ export function registerAnswerClarification(server: McpServer): void {
     "answer_clarification",
     {
       title: "Answer clarification",
+      _meta: PRODUCT_RESULTS_TOOL_META,
       description:
         "Resumes a search/match/complementary-search session after a needs_clarification " +
         "response, merging the buyer's answer back into the original request and re-running " +
