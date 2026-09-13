@@ -144,6 +144,9 @@ interface AmazonRecord {
   description: string[];
   details: Record<string, unknown>;
   image_url: string | null;
+  /** Local file, relative to the repo root -- for fixtures with an original illustration
+   *  instead of a real source-catalog photo (e.g. no licensable Amazon URL). */
+  image_path?: string | null;
   /** Present on the controlled demo fixtures; omitted on legacy source records. */
   product_family?: string;
   variant_key?: string;
@@ -239,7 +242,7 @@ function loadAmazonCategory(category: ProductCategory, fileName: string): Produc
       brand: r.brand_or_store ?? null,
       priceUsd: r.price_usd ?? null,
       imageUrl: r.image_url ?? null,
-      imagePath: null,
+      imagePath: r.image_path ?? null,
       attributes: { ...r },
       embeddingText,
     };
